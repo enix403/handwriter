@@ -40,6 +40,7 @@ export function App() {
     // Load the WASM Core
     loadWasmCore().then(() => {
       setLoading(false);
+      wasmCore.initialize();
     });
   }, []);
 

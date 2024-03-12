@@ -1,84 +1,97 @@
 import useSize from "@react-hook/size";
 import Konva from "konva";
-import { KonvaEventObject } from "konva/lib/Node";
-import { Vector2d } from "konva/lib/types";
-import { useEffect, useRef } from "react";
-import { Circle, Group, Layer, Rect, Shape, Stage } from "react-konva";
-import { useImmer } from "use-immer";
-import * as R from "ramda";
+import { useEffect, useRef, useState } from "react";
+import { Layer, Shape, Stage } from "react-konva";
 import { wasmCore } from "@/tunnel";
+import { useObject } from "./hooks";
+import { Vector2d } from "konva/lib/types";
+import * as R from "ramda";
 
-function useObject<T>(creator: () => T) {
-  let ref = useRef<T | null>(null);
-  if (ref.current === null) {
-    ref.current = creator();
-  }
-  return ref.current;
+function TextComponent({
+  fm,
+  text,
+  position
+}: {
+  fm: wasmCore.FontManager;
+  text: string;
+  position: Vector2d;
+}) {
+  let [renders, setRenders] = useState<wasmCore.OutlineRender[]>([]);
+
+  useEffect(() => {
+    setRenders(wasmCore.fm_render_string(fm, text));
+  }, [text]);
+
+  let spacing = 10;
+
+  return (
+    <Shape
+      x={position.x}
+      y={position.y}
+      sceneFunc={(context, shape) => {
+        const { DrawInstructionTag } = wasmCore;
+        let left = 0;
+
+        context.beginPath();
+        for (let i = 0; i < renders.length; ++i) {
+          let { aabb, instructions } = renders[i];
+
+          let width = aabb.x_max;
+          let height = aabb.y_max;
+
+          context.strokeRect(left, 0, width, height);
+
+          instructions.forEach(inst => {
+            let { point1, point2, point3 } = inst;
+            let points = [point1, point2, point3];
+
+            // Move to next character
+            points.forEach(p => (p.x += left));
+
+            if (inst.tag == DrawInstructionTag.MoveTo)
+              context.moveTo(points[0].x, points[0].y);
+            else if (inst.tag == DrawInstructionTag.LineTo)
+              context.lineTo(points[0].x, points[0].y);
+            else if (inst.tag == DrawInstructionTag.QuadTo)
+              context.quadraticCurveTo(
+                points[0].x,
+                points[0].y,
+                points[1].x,
+                points[1].y
+              );
+            else if (inst.tag == DrawInstructionTag.CurveTo)
+              context.bezierCurveTo(
+                points[0].x,
+                points[0].y,
+                points[1].x,
+                points[1].y,
+                points[2].x,
+                points[2].y
+              );
+            else if (inst.tag == DrawInstructionTag.Close) context.closePath();
+          });
+
+          left += aabb.x_max + spacing;
+        }
+
+        context.fillStrokeShape(shape);
+      }}
+      fill='black'
+    />
+  );
 }
 
 function Canvas({ width, height }) {
-  const firstRender = useFirstRender();
-
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  // const fm = useManager(() => wasmCore.fm_create());
   const fm = useObject(() => wasmCore.fm_create());
-  const outlineRender = useObject(() => wasmCore.fm_render_char("p", fm));
-  // @ts-ignore
-  window.outlineRender = outlineRender;
 
   return (
     <Stage ref={stageRef} width={width} height={height}>
       <Layer ref={layerRef}>
-        <Rect
-          x={0}
-          y={0}
-          width={outlineRender.aabb.x_max * 0.1}
-          height={outlineRender.aabb.y_max * 0.1}
-          fill="green"
-        />
-        <Shape
-          sceneFunc={(context, shape) => {
-            context.beginPath();
-
-            let rd = outlineRender;
-
-            let numInstructions = rd.instructions.length;
-
-            const { DrawInstructionTag } = wasmCore;
-
-            for (let i = 0; i < numInstructions; ++i) {
-              let inst = rd.instructions[i];
-              // console.log(inst.point1.x, inst.point1.y);
-
-              if (inst.tag == DrawInstructionTag.MoveTo)
-                context.moveTo(inst.point1.x, inst.point1.y);
-              else if (inst.tag == DrawInstructionTag.LineTo)
-                context.lineTo(inst.point1.x, inst.point1.y);
-              else if (inst.tag == DrawInstructionTag.QuadTo)
-                context.quadraticCurveTo(
-                  inst.point1.x,
-                  inst.point1.y,
-                  inst.point2.x,
-                  inst.point2.y
-                );
-              else if (inst.tag == DrawInstructionTag.CurveTo)
-                context.bezierCurveTo(
-                  inst.point1.x,
-                  inst.point1.y,
-                  inst.point2.x,
-                  inst.point2.y,
-                  inst.point3.x,
-                  inst.point3.y
-                );
-              else if (inst.tag == DrawInstructionTag.Close)
-                context.closePath();
-            }
-            context.fillStrokeShape(shape);
-          }}
-          fill='black'
-        />
+        <TextComponent fm={fm} text="abcdefghijklm" position={{ x: 10, y: 100 }} />
+        <TextComponent fm={fm} text="nopqrstuvwxyz" position={{ x: 10, y: 200 }} />
       </Layer>
     </Stage>
   );
@@ -96,15 +109,4 @@ export function Scratch() {
       <Canvas width={width} height={height} />
     </div>
   );
-}
-
-function useFirstRender() {
-  const firstRender = useRef(true);
-
-  useEffect(() => {
-    if (!firstRender.current) return;
-    firstRender.current = false;
-  }, []);
-
-  return firstRender.current;
 }

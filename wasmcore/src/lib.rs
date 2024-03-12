@@ -13,7 +13,13 @@ pub struct FontManager {
 }
 
 #[wasm_bindgen]
+pub fn initialize() {
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+}
+
+#[wasm_bindgen]
 pub fn fm_create() -> FontManager {
+
     let font_data = include_bytes!("../FiraCode-Regular.ttf");
 
     let face = match ttf::OwnedFace::from_vec(font_data.as_ref().to_owned(), 0) {
@@ -44,6 +50,26 @@ pub struct DrawInstruction {
     pub point1: Point,
     pub point2: Point,
     pub point3: Point,
+}
+
+impl DrawInstruction {
+    fn translate(&mut self, delta: &Point) {
+        self.point1 += delta;
+        self.point2 += delta;
+        self.point3 += delta;
+    }
+
+    fn invert_y(&mut self, top_y: f32) {
+        self.point1.y = top_y - self.point1.y;
+        self.point2.y = top_y - self.point2.y;
+        self.point3.y = top_y - self.point3.y;
+    }
+
+    fn scale(&mut self, factor: f32) {
+        self.point1 *= factor;
+        self.point2 *= factor;
+        self.point3 *= factor;
+    }
 }
 
 #[wasm_bindgen(getter_with_clone)]
@@ -113,50 +139,92 @@ impl ttf::OutlineBuilder for InstructionOutlineBuilder {
 }
 
 #[wasm_bindgen]
-pub fn fm_render_char(c: char, fm: &FontManager) -> OutlineRender {
+pub fn fm_render_string(fm: &FontManager, text: &str) -> Vec<OutlineRender> {
     let face = fm.face.as_face_ref();
 
-    let mut builder = InstructionOutlineBuilder::new();
+    let scale = 0.04;
 
-    let mut bbox = face
-        .glyph_index(c)
-        .and_then(|id| face.outline_glyph(id, &mut builder))
-        .unwrap();
+    let mut renders = vec![];
 
-    let origin = &Point::new(bbox.x_min as f32, bbox.y_min as f32);
-
-    let scale = 0.1;
-
-    for i in 0..builder.instructions.len() {
-        let inst = &mut builder.instructions[i];
-
-        inst.point1.y = (bbox.y_max as f32) - inst.point1.y;
-        inst.point1 -= origin;
-        inst.point1 *= scale;
-
-        inst.point2.y = (bbox.y_max as f32) - inst.point2.y;
-        inst.point2 -= origin;
-        inst.point2 *= scale;
-
-        inst.point3.y = (bbox.y_max as f32) - inst.point3.y;
-        inst.point3 -= origin;
-        inst.point3 *= scale;
+    for c in text.chars() {
+        let mut builder = InstructionOutlineBuilder::new();
+        let mut bbox = face
+            .glyph_index(c)
+            .and_then(|id| face.outline_glyph(id, &mut builder))
+            .unwrap();
 
 
-        // println!("{:?}", inst);
+        let w = ((bbox.width() as f32) * scale) as i16;
+        let h = ((bbox.height() as f32) * scale) as i16;
+
+        let translation = Point::new(bbox.x_min as f32, bbox.y_min as f32) * -1.0;
+
+        for inst in builder.instructions.iter_mut() {
+            inst.translate(&translation);
+            inst.invert_y(bbox.height() as _);
+            inst.scale(scale);
+        }
+
+        let render = OutlineRender {
+            instructions: builder.instructions,
+            aabb: holders::Rect {
+                x_min: 0,
+                y_min: 0,
+                x_max: w,
+                y_max: h,
+            },
+        };
+
+        renders.push(render);
+
     }
 
-    bbox.x_max -= bbox.x_min;
-    bbox.y_max -= bbox.y_min;
-
-    // bbox.x_max *= (scale as i16);
-    // bbox.y_max *= (scale as i16);
-
-    bbox.x_min = 0;
-    bbox.y_min = 0;
-
-    OutlineRender {
-        instructions: builder.instructions,
-        aabb: bbox.into(),
-    }
+    renders
 }
+
+// #[wasm_bindgen]
+// pub fn fm_render_char(c: char, fm: &FontManager) -> OutlineRender {
+//     let face = fm.face.as_face_ref();
+
+//     let mut builder = InstructionOutlineBuilder::new();
+
+//     let mut bbox = face
+//         .glyph_index(c)
+//         .and_then(|id| face.outline_glyph(id, &mut builder))
+//         .unwrap();
+
+//     let origin = &Point::new(bbox.x_min as f32, bbox.y_min as f32);
+
+//     let scale = 0.1;
+
+//     for i in 0..builder.instructions.len() {
+//         let inst = &mut builder.instructions[i];
+
+//         inst.point1.y = (bbox.y_max as f32) - inst.point1.y;
+//         inst.point1 -= origin;
+//         inst.point1 *= scale;
+
+//         inst.point2.y = (bbox.y_max as f32) - inst.point2.y;
+//         inst.point2 -= origin;
+//         inst.point2 *= scale;
+
+//         inst.point3.y = (bbox.y_max as f32) - inst.point3.y;
+//         inst.point3 -= origin;
+//         inst.point3 *= scale;
+//         // println!("{:?}", inst);
+//     }
+
+//     bbox.x_max -= bbox.x_min;
+//     bbox.y_max -= bbox.y_min;
+
+//     // bbox.x_max *= (scale as i16);
+//     // bbox.y_max *= (scale as i16);
+
+//     bbox.x_min = 0;
+//     bbox.y_min = 0;
+
+//     OutlineRender {
+//         instructions: builder.instructions,
+//         aabb: bbox.into(),
+//     }
+// }
