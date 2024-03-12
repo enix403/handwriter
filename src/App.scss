@@ -1,0 +1,55 @@
+// @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+  min-width: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  font-family: "Inter", sans-serif;
+
+  // color: #000;
+  // background-color: #f8f7f4;
+  // background-color: #ffffff;
+}
+
+#root {
+  isolation: isolate;
+
+  max-width: 100%;
+  min-height: 100vh;
+  max-height: 100vh;
+
+  display: flex;
+  flex-direction: row;
+
+  // background-color: #E8E8E8;
+}
+
+input,
+textarea,
+select,
+button {
+  outline: none !important;
+}
+
+@layer utilities {
+  .tc {
+    @apply transition-colors;
+  }
+}
+
+/* ============= Mantine ============= */
+.mantine-active {
+  transition: transform 50ms ease-in-out;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
