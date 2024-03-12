@@ -2,7 +2,7 @@ import useSize from "@react-hook/size";
 import Konva from "konva";
 import { useEffect, useRef, useState } from "react";
 import { Layer, Shape, Stage } from "react-konva";
-import { wasmCore } from "@/tunnel";
+import { isCoreLoaded, wasmCore } from "@/tunnel";
 import { useObject } from "./hooks";
 import { Vector2d } from "konva/lib/types";
 import * as R from "ramda";
@@ -19,7 +19,8 @@ function TextComponent({
   let [renders, setRenders] = useState<wasmCore.OutlineRender[]>([]);
 
   useEffect(() => {
-    setRenders(wasmCore.fm_render_string(fm, text));
+    if (isCoreLoaded())
+      setRenders(wasmCore.fm_render_string(fm, text));
   }, [text]);
 
   let spacing = 10;
@@ -86,14 +87,18 @@ function Canvas({ width, height }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  const fm = useObject(() => wasmCore.fm_create());
+  const fm = useObject(() => wasmCore?.fm_create());
 
   return (
     <Stage ref={stageRef} width={width} height={height}>
       <Layer ref={layerRef}>
         <TextComponent fm={fm} text="abcdefghijklm" position={{ x: 10, y: 100 }} />
         <TextComponent fm={fm} text="nopqrstuvwxyz" position={{ x: 10, y: 200 }} />
-        <TextComponent fm={fm} text="0123456789" position={{ x: 10, y: 300 }} />
+        <TextComponent fm={fm} text="ABCDEFGHIJKLM" position={{ x: 10, y: 300 }} />
+        <TextComponent fm={fm} text="NOPQRSTUVWXYZ" position={{ x: 10, y: 400 }} />
+        <TextComponent fm={fm} text="0123456789" position={{ x: 10, y: 500 }} />
+        <TextComponent fm={fm} text="!@#$%^&*()_+=-" position={{ x: 10, y: 600 }} />
+        <TextComponent fm={fm} text="/<>.,;[]{}" position={{ x: 10, y: 700 }} />
       </Layer>
     </Stage>
   );

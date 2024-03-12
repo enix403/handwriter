@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 export function useObject<T>(creator: () => T) {
   let ref = useRef<T | null>(null);
-  if (ref.current === null) {
+  if (ref.current == undefined) {
     ref.current = creator();
   }
   return ref.current;

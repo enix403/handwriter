@@ -1,8 +1,14 @@
 #![allow(unused)]
 
-use owned_ttf_parser::{self as ttf, AsFaceRef};
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt::Write;
+
+use owned_ttf_parser::{self as ttf, AsFaceRef};
 use wasm_bindgen::prelude::*;
+
+mod outline;
+use outline::{DrawInstruction, InstructionOutlineBuilder, OutlineRender};
 
 mod holders;
 pub use holders::Point;
@@ -10,6 +16,7 @@ pub use holders::Point;
 #[wasm_bindgen]
 pub struct FontManager {
     face: ttf::OwnedFace,
+    outlines_cache: HashMap<char, OutlineRender>,
 }
 
 #[wasm_bindgen]
@@ -17,152 +24,38 @@ pub fn initialize() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 }
 
-#[wasm_bindgen]
-pub fn fm_create() -> FontManager {
+impl FontManager {
+    fn new() -> Self {
+        let font_data = include_bytes!("../FiraCode-Regular.ttf");
 
-    let font_data = include_bytes!("../FiraCode-Regular.ttf");
+        let face = match ttf::OwnedFace::from_vec(font_data.as_ref().to_owned(), 0) {
+            Ok(f) => f,
+            Err(e) => {
+                eprint!("Error: {}.", e);
+                std::process::exit(1);
+            }
+        };
 
-    let face = match ttf::OwnedFace::from_vec(font_data.as_ref().to_owned(), 0) {
-        Ok(f) => f,
-        Err(e) => {
-            eprint!("Error: {}.", e);
-            std::process::exit(1);
-        }
-    };
-
-    FontManager { face }
-}
-
-#[wasm_bindgen]
-#[derive(Copy, Clone, Debug)]
-pub enum DrawInstructionTag {
-    MoveTo,
-    LineTo,
-    QuadTo,
-    CurveTo,
-    Close,
-}
-
-#[wasm_bindgen(getter_with_clone)]
-#[derive(Clone, Debug)]
-pub struct DrawInstruction {
-    pub tag: DrawInstructionTag,
-    pub point1: Point,
-    pub point2: Point,
-    pub point3: Point,
-}
-
-impl DrawInstruction {
-    fn translate(&mut self, delta: &Point) {
-        self.point1 += delta;
-        self.point2 += delta;
-        self.point3 += delta;
-    }
-
-    fn invert_y(&mut self, top_y: f32) {
-        self.point1.y = top_y - self.point1.y;
-        self.point2.y = top_y - self.point2.y;
-        self.point3.y = top_y - self.point3.y;
-    }
-
-    fn scale(&mut self, factor: f32) {
-        self.point1 *= factor;
-        self.point2 *= factor;
-        self.point3 *= factor;
-    }
-}
-
-#[wasm_bindgen(getter_with_clone)]
-#[derive(Clone)]
-pub struct OutlineRender {
-    pub instructions: Vec<DrawInstruction>,
-    pub aabb: holders::Rect,
-}
-
-struct InstructionOutlineBuilder {
-    instructions: Vec<DrawInstruction>,
-}
-
-impl InstructionOutlineBuilder {
-    pub fn new() -> Self {
-        Self {
-            instructions: vec![],
+        FontManager {
+            face,
+            outlines_cache: HashMap::new(),
         }
     }
-}
 
-impl ttf::OutlineBuilder for InstructionOutlineBuilder {
-    fn move_to(&mut self, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::MoveTo,
-            point1: Point::new(x, y),
-            point2: Point::zero(),
-            point3: Point::zero(),
-        });
-    }
+    fn outline_glyph(&mut self, c: char) -> &OutlineRender {
+        let face = self.face.as_face_ref();
 
-    fn line_to(&mut self, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::LineTo,
-            point1: Point::new(x, y),
-            point2: Point::zero(),
-            point3: Point::zero(),
-        });
-    }
-
-    fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::QuadTo,
-            point1: Point::new(x1, y1),
-            point2: Point::new(x, y),
-            point3: Point::zero(),
-        });
-    }
-
-    fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::CurveTo,
-            point1: Point::new(x1, y1),
-            point2: Point::new(x2, y2),
-            point3: Point::new(x, y),
-        });
-    }
-
-    fn close(&mut self) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::Close,
-            point1: Point::zero(),
-            point2: Point::zero(),
-            point3: Point::zero(),
-        });
-    }
-}
-
-#[wasm_bindgen]
-pub fn fm_render_string(fm: &FontManager, text: &str) -> Vec<OutlineRender> {
-    let face = fm.face.as_face_ref();
-
-    let scale = 0.04;
-
-    let mut renders = vec![];
-
-    for c in text.chars() {
         let mut builder = InstructionOutlineBuilder::new();
         let mut bbox = face
             .glyph_index(c)
             .and_then(|id| face.outline_glyph(id, &mut builder))
             .unwrap();
 
-
-        let w = ((bbox.width() as f32) * scale) as i16;
-        let h = ((bbox.height() as f32) * scale) as i16;
-
         let translation = Point::new(bbox.x_min as f32, bbox.y_min as f32) * -1.0;
 
         for inst in builder.instructions.iter_mut() {
             inst.translate(&translation);
             inst.invert_y(bbox.height() as _);
-            inst.scale(scale);
         }
 
         let render = OutlineRender {
@@ -170,13 +63,32 @@ pub fn fm_render_string(fm: &FontManager, text: &str) -> Vec<OutlineRender> {
             aabb: holders::Rect {
                 x_min: 0,
                 y_min: 0,
-                x_max: w,
-                y_max: h,
+                x_max: bbox.width(),
+                y_max: bbox.height(),
             },
         };
 
-        renders.push(render);
+        self.outlines_cache.insert(c, render);
+        self.outlines_cache.get(&c).unwrap()
+    }
+}
 
+#[wasm_bindgen]
+pub fn fm_create() -> FontManager {
+    FontManager::new()
+}
+
+#[wasm_bindgen]
+pub fn fm_render_string(fm: &mut FontManager, text: &str) -> Vec<OutlineRender> {
+    let face = fm.face.as_face_ref();
+
+    let scale = 0.03;
+
+    let mut renders = vec![];
+
+    for c in text.chars() {
+        let mut render = fm.outline_glyph(c);
+        renders.push(render.clone().scaled(scale));
     }
 
     renders
