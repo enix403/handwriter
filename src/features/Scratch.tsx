@@ -76,6 +76,7 @@ function TextComponent({
 
         context.fillStrokeShape(shape);
       }}
+      // stroke='#13ad24'
       fill='black'
     />
   );
@@ -92,6 +93,7 @@ function Canvas({ width, height }) {
       <Layer ref={layerRef}>
         <TextComponent fm={fm} text="abcdefghijklm" position={{ x: 10, y: 100 }} />
         <TextComponent fm={fm} text="nopqrstuvwxyz" position={{ x: 10, y: 200 }} />
+        <TextComponent fm={fm} text="0123456789" position={{ x: 10, y: 300 }} />
       </Layer>
     </Stage>
   );
@@ -103,7 +105,7 @@ export function Scratch() {
 
   return (
     <div className='flex-1 self-stretch'>
-      <div ref={containerRef} className='fixed inset-0'>
+      <div ref={containerRef} className='fixed inset-0 flex flex-row-reverse py-1 px-2'>
         {width} x {height}
       </div>
       <Canvas width={width} height={height} />
