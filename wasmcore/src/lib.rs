@@ -59,14 +59,17 @@ impl FontManager {
             inst.invert_y(mirror as _);
         }
 
-        let width = bbox.map(|bbox| bbox.width()).unwrap_or(32);
-        let advanced_width = face
+        let width = bbox
+            .map(|bbox| bbox.width())
+            .unwrap_or_else(|| face.global_bounding_box().width());
+
+        let advance_width = face
             .glyph_hor_advance(glyph_id)
             .unwrap_or_else(|| width as _);
 
         let render = OutlineRender {
             instructions: builder.instructions,
-            advanced_width,
+            advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
         };
 

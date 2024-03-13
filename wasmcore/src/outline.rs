@@ -46,7 +46,7 @@ impl DrawInstruction {
 #[derive(Clone)]
 pub struct OutlineRender {
     pub instructions: Vec<DrawInstruction>,
-    pub advanced_width: u16,
+    pub advance_width: u16,
     /// Left side bearing
     pub lsb: i16,
     // pub tight_width: i16,
@@ -59,7 +59,7 @@ impl OutlineRender {
         }
         // self.aabb.x_max = ((self.aabb.x_max as f32) * scale) as _;
         // self.aabb.y_max = ((self.aabb.y_max as f32) * scale) as _;
-        self.advanced_width = ((self.advanced_width as f32) * scale) as _;
+        self.advance_width = ((self.advance_width as f32) * scale) as _;
         self.lsb = ((self.lsb as f32) * scale) as _;
         // self.tight_width = ((self.tight_width as f32) * scale) as _;
         self

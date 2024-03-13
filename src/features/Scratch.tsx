@@ -35,7 +35,7 @@ function TextComponent({
 
         context.beginPath();
         for (let i = 0; i < renders.length; ++i) {
-          let { advanced_width, instructions } = renders[i];
+          let { advance_width, instructions } = renders[i];
 
           // context.strokeRect(lsb + left, 0, tight_width, tight_height);
 
@@ -69,12 +69,13 @@ function TextComponent({
             else if (inst.tag == DrawInstructionTag.Close) context.closePath();
           });
 
-          left += advanced_width;
+          left += advance_width;
         }
 
         context.fillStrokeShape(shape);
       }}
       // stroke='#13ad24'
+      // strokeWidth={1}
       fill='black'
     />
   );
@@ -91,8 +92,8 @@ function Canvas({ width, height }) {
       <Layer ref={layerRef}>
         <TextComponent
           fm={fm}
-          text='hello world'
-          fontSize={28}
+          text='Fade Up'
+          fontSize={100}
           position={{ x: 10, y: 100 }}
         />
       </Layer>
