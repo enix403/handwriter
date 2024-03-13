@@ -45,15 +45,13 @@ impl FontManager {
     fn outline_glyph(&mut self, c: char) -> &OutlineRender {
         let face = self.face.as_face_ref();
 
-        let glyph_id = face.glyph_index(c).unwrap();
+        let glyph_id = face.glyph_index(c).expect("Glyph not found");
 
         let mut builder = InstructionOutlineBuilder::new();
-        let mut bbox = face.outline_glyph(glyph_id, &mut builder).unwrap();
+        let mut bbox = face.outline_glyph(glyph_id, &mut builder);
 
         let upm = face.units_per_em();
         let mirror = upm / 2;
-        let descender = face.descender();
-
         let baseline = mirror as f32;
 
         for inst in builder.instructions.iter_mut() {
@@ -61,20 +59,15 @@ impl FontManager {
             inst.invert_y(mirror as _);
         }
 
+        let width = bbox.map(|bbox| bbox.width()).unwrap_or(32);
+        let advanced_width = face
+            .glyph_hor_advance(glyph_id)
+            .unwrap_or_else(|| width as _);
+
         let render = OutlineRender {
             instructions: builder.instructions,
-            advanced_width: face.glyph_hor_advance(glyph_id).unwrap_or_else(|| {
-                bbox.width() as _
-            }),
+            advanced_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
-            tight_width: bbox.width(),
-            tight_height: bbox.height(),
-            // aabb: holders::Rect {
-            //     x_min: 0,
-            //     y_min: 0,
-            //     x_max: bbox.width(),
-            //     y_max: bbox.height(),
-            // },
         };
 
         self.outlines_cache.insert(c, render);

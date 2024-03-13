@@ -25,8 +25,6 @@ function TextComponent({
       setRenders(wasmCore.fm_render_string(fm, text, fontSize));
   }, [text]);
 
-  let spacing = 10;
-
   return (
     <Shape
       x={position.x}
@@ -91,7 +89,12 @@ function Canvas({ width, height }) {
   return (
     <Stage ref={stageRef} width={width} height={height}>
       <Layer ref={layerRef}>
-        <TextComponent fm={fm} text="Areda4544youthere?" fontSize={24} position={{ x: 10, y: 100 }} />
+        <TextComponent
+          fm={fm}
+          text='hello world'
+          fontSize={28}
+          position={{ x: 10, y: 100 }}
+        />
       </Layer>
     </Stage>
   );
@@ -103,7 +106,10 @@ export function Scratch() {
 
   return (
     <div className='flex-1 self-stretch'>
-      <div ref={containerRef} className='fixed inset-0 flex flex-row-reverse py-1 px-2'>
+      <div
+        ref={containerRef}
+        className='fixed inset-0 flex flex-row-reverse px-2 py-1'
+      >
         {width} x {height}
       </div>
       <Canvas width={width} height={height} />

@@ -49,8 +49,7 @@ pub struct OutlineRender {
     pub advanced_width: u16,
     /// Left side bearing
     pub lsb: i16,
-    pub tight_width: i16,
-    pub tight_height: i16,
+    // pub tight_width: i16,
 }
 
 impl OutlineRender {
@@ -62,8 +61,7 @@ impl OutlineRender {
         // self.aabb.y_max = ((self.aabb.y_max as f32) * scale) as _;
         self.advanced_width = ((self.advanced_width as f32) * scale) as _;
         self.lsb = ((self.lsb as f32) * scale) as _;
-        self.tight_width = ((self.tight_width as f32) * scale) as _;
-        self.tight_height = ((self.tight_height as f32) * scale) as _;
+        // self.tight_width = ((self.tight_width as f32) * scale) as _;
         self
     }
 }
