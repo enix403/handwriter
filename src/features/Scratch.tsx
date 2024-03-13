@@ -40,7 +40,7 @@ function TextComponent({
           let width = aabb.x_max;
           let height = aabb.y_max;
 
-          context.strokeRect(left, 0, width, height);
+          // context.strokeRect(left, 0, width, height);
 
           instructions.forEach(inst => {
             let { point1, point2, point3 } = inst;

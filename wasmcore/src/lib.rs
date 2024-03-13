@@ -82,14 +82,22 @@ pub fn fm_create() -> FontManager {
 pub fn fm_render_string(fm: &mut FontManager, text: &str) -> Vec<OutlineRender> {
     let face = fm.face.as_face_ref();
 
-    let scale = 0.03;
+    let point_size = 16 as f32;
+    let resolution = 72 as f32;
+    let units_per_em = face.units_per_em() as f32;
 
-    let mut renders = vec![];
+    let scale = point_size * resolution / (72.0 * units_per_em);
 
-    for c in text.chars() {
-        let mut render = fm.outline_glyph(c);
-        renders.push(render.clone().scaled(scale));
-    }
+    text.chars()
+        .map(|c| fm.outline_glyph(c).clone().scaled(scale))
+        .collect()
 
-    renders
+    // let mut renders = vec![];
+
+    // for c in text.chars() {
+    //     let mut render = fm.outline_glyph(c);
+    //     renders.push(render.clone().scaled(scale));
+    // }
+
+    // renders
 }
