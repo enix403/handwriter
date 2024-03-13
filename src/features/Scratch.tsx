@@ -10,17 +10,19 @@ import * as R from "ramda";
 function TextComponent({
   fm,
   text,
-  position
+  position,
+  fontSize
 }: {
   fm: wasmCore.FontManager;
   text: string;
   position: Vector2d;
+  fontSize: number;
 }) {
   let [renders, setRenders] = useState<wasmCore.OutlineRender[]>([]);
 
   useEffect(() => {
     if (isCoreLoaded())
-      setRenders(wasmCore.fm_render_string(fm, text));
+      setRenders(wasmCore.fm_render_string(fm, text, fontSize));
   }, [text]);
 
   let spacing = 10;
@@ -35,12 +37,9 @@ function TextComponent({
 
         context.beginPath();
         for (let i = 0; i < renders.length; ++i) {
-          let { aabb, instructions } = renders[i];
+          let { advanced_width, instructions } = renders[i];
 
-          let width = aabb.x_max;
-          let height = aabb.y_max;
-
-          // context.strokeRect(left, 0, width, height);
+          // context.strokeRect(lsb + left, 0, tight_width, tight_height);
 
           instructions.forEach(inst => {
             let { point1, point2, point3 } = inst;
@@ -72,7 +71,7 @@ function TextComponent({
             else if (inst.tag == DrawInstructionTag.Close) context.closePath();
           });
 
-          left += aabb.x_max + spacing;
+          left += advanced_width;
         }
 
         context.fillStrokeShape(shape);
@@ -92,13 +91,7 @@ function Canvas({ width, height }) {
   return (
     <Stage ref={stageRef} width={width} height={height}>
       <Layer ref={layerRef}>
-        <TextComponent fm={fm} text="abcdefghijklm" position={{ x: 10, y: 100 }} />
-        <TextComponent fm={fm} text="nopqrstuvwxyz" position={{ x: 10, y: 200 }} />
-        <TextComponent fm={fm} text="ABCDEFGHIJKLM" position={{ x: 10, y: 300 }} />
-        <TextComponent fm={fm} text="NOPQRSTUVWXYZ" position={{ x: 10, y: 400 }} />
-        <TextComponent fm={fm} text="0123456789" position={{ x: 10, y: 500 }} />
-        <TextComponent fm={fm} text="!@#$%^&*()_+=-" position={{ x: 10, y: 600 }} />
-        <TextComponent fm={fm} text="/<>.,;[]{}" position={{ x: 10, y: 700 }} />
+        <TextComponent fm={fm} text="Areda4544youthere?" fontSize={24} position={{ x: 10, y: 100 }} />
       </Layer>
     </Stage>
   );

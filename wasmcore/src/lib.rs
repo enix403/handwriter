@@ -45,27 +45,36 @@ impl FontManager {
     fn outline_glyph(&mut self, c: char) -> &OutlineRender {
         let face = self.face.as_face_ref();
 
-        let mut builder = InstructionOutlineBuilder::new();
-        let mut bbox = face
-            .glyph_index(c)
-            .and_then(|id| face.outline_glyph(id, &mut builder))
-            .unwrap();
+        let glyph_id = face.glyph_index(c).unwrap();
 
-        let translation = Point::new(bbox.x_min as f32, bbox.y_min as f32) * -1.0;
+        let mut builder = InstructionOutlineBuilder::new();
+        let mut bbox = face.outline_glyph(glyph_id, &mut builder).unwrap();
+
+        let upm = face.units_per_em();
+        let mirror = upm / 2;
+        let descender = face.descender();
+
+        let baseline = mirror as f32;
 
         for inst in builder.instructions.iter_mut() {
-            inst.translate(&translation);
-            inst.invert_y(bbox.height() as _);
+            inst.translate(&Point::new(0.0, baseline));
+            inst.invert_y(mirror as _);
         }
 
         let render = OutlineRender {
             instructions: builder.instructions,
-            aabb: holders::Rect {
-                x_min: 0,
-                y_min: 0,
-                x_max: bbox.width(),
-                y_max: bbox.height(),
-            },
+            advanced_width: face.glyph_hor_advance(glyph_id).unwrap_or_else(|| {
+                bbox.width() as _
+            }),
+            lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
+            tight_width: bbox.width(),
+            tight_height: bbox.height(),
+            // aabb: holders::Rect {
+            //     x_min: 0,
+            //     y_min: 0,
+            //     x_max: bbox.width(),
+            //     y_max: bbox.height(),
+            // },
         };
 
         self.outlines_cache.insert(c, render);
@@ -79,14 +88,15 @@ pub fn fm_create() -> FontManager {
 }
 
 #[wasm_bindgen]
-pub fn fm_render_string(fm: &mut FontManager, text: &str) -> Vec<OutlineRender> {
+pub fn fm_render_string(fm: &mut FontManager, text: &str, font_size: f32) -> Vec<OutlineRender> {
     let face = fm.face.as_face_ref();
 
-    let point_size = 16 as f32;
+    // let point_size = 52 as f32;
     let resolution = 72 as f32;
     let units_per_em = face.units_per_em() as f32;
 
-    let scale = point_size * resolution / (72.0 * units_per_em);
+    // let scale = point_size * resolution / (72.0 * units_per_em);
+    let scale = 1.0 / units_per_em * font_size;
 
     text.chars()
         .map(|c| fm.outline_glyph(c).clone().scaled(scale))
