@@ -104,7 +104,8 @@ impl FontManager {
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
             upm,
             bbox: bbox.map(|bbox| bbox.into()),
-            ascender: face.capital_height().unwrap_or(0),
+            capital_height: face.capital_height().unwrap_or(0),
+            ascender: face.ascender(),
             descender: face.descender(),
         };
 

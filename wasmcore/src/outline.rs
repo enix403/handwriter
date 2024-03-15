@@ -59,6 +59,7 @@ pub struct OutlineRender {
     // pub tight_width: i16,
     pub bbox: Option<holders::Rect>,
 
+    pub capital_height: i16,
     pub ascender: i16,
     pub descender: i16,
 }

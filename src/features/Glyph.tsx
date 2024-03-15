@@ -49,54 +49,96 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
             x={0}
             y={0}
             sceneFunc={(context, shape) => {
-
               context.beginPath();
 
-              let { instructions, upm, bbox, ascender, descender } = outline;
+              let {
+                instructions,
+                upm,
+                bbox,
+                ascender,
+                descender,
+                capital_height
+              } = outline;
               let box = bbox!;
 
               let origin = transform(0, 0);
               let axisSize = 1;
 
               // Horizontal
-              context.fillRect(0, origin.y - axisSize / 2, physicalSize, axisSize);
+              context.fillRect(
+                0,
+                origin.y - axisSize / 2,
+                physicalSize,
+                axisSize
+              );
               // Vertical
               // context.fillRect(origin.x - axisSize / 2, 0, axisSize, physicalSize);
 
               let scale = emSize / upm;
 
-              box.x_min *= scale;
-              box.x_max *= scale;
-              box.y_min *= scale;
-              box.y_max *= scale;
+              if (bbox) {
+                box.x_min *= scale;
+                box.x_max *= scale;
+                box.y_min *= scale;
+                box.y_max *= scale;
+              }
 
               ascender *= scale;
               descender *= scale;
+              capital_height *= scale;
 
-              let bw = box.x_max - box.x_min;
-              let bh = box.y_max - box.y_min;
+              // let bw = box.x_max - box.x_min;
+              // let bh = box.y_max - box.y_min;
 
               // Horizontal bound
               // context.fillRect(0, halfSize - box.y_min - axisSize / 2, physicalSize, axisSize);
               // context.fillRect(0, halfSize - box.y_max - axisSize / 2, physicalSize, axisSize);
 
               // Vertical bound
-              context.fillRect(halfSize + box.x_min - axisSize / 2, 0, axisSize, physicalSize)
-              context.fillRect(halfSize + box.x_max - axisSize / 2, 0, axisSize, physicalSize)
+              if (bbox) {
+                context.fillRect(
+                  halfSize + box.x_min - axisSize / 2,
+                  0,
+                  axisSize,
+                  physicalSize
+                );
+                context.fillRect(
+                  halfSize + box.x_max - axisSize / 2,
+                  0,
+                  axisSize,
+                  physicalSize
+                );
+              }
+
 
               // Horizontal ascender
-              context.fillRect(0, halfSize - ascender - axisSize / 2, physicalSize, axisSize);
-              context.fillRect(0, halfSize - descender - axisSize / 2, physicalSize, axisSize);
-
+              context.fillRect(
+                0,
+                halfSize - capital_height - axisSize / 2,
+                physicalSize,
+                axisSize
+              );
+              context.fillRect(
+                0,
+                halfSize - ascender - axisSize / 2,
+                physicalSize,
+                axisSize
+              );
+              context.fillRect(
+                0,
+                halfSize - descender - axisSize / 2,
+                physicalSize,
+                axisSize
+              );
 
               instructions.forEach(inst => {
                 let { point1, point2, point3 } = inst;
                 let points: Vector2d[] = [point1, point2, point3]
-                .map(p => ({
-                  x: p.x * scale,
-                  y: p.y * scale
-                }))
-                .map(p => transform(p.x, p.y))
+                  .map(p => ({
+                    x: p.x * scale,
+                    y: p.y * scale
+                  }))
+                  .map(p => transform(p.x, p.y));
 
                 if (inst.tag == DrawInstructionTag.MoveTo)
                   context.moveTo(points[0].x, points[0].y);
@@ -135,7 +177,7 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
               context.fillStrokeShape(shape);
               context.strokeShape(shape);
             }}
-            stroke="black"
+            stroke='black'
             fill='#808080'
           />
         </Layer>
