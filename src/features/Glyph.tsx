@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useObject } from "./hooks";
 import Konva from "konva";
 import { isCoreLoaded, wasmCore } from "@/tunnel";
-import { Group, Layer, Line, Rect, Shape, Stage } from "react-konva";
+import { Circle, Group, Layer, Line, Rect, Shape, Stage } from "react-konva";
 import { Vector2d } from "konva/lib/types";
 
 const { DrawCommandTag } = wasmCore;
@@ -32,7 +32,7 @@ const AxisLine = ({
   return <Line points={points} stroke={color} strokeWidth={2} />;
 };
 
-export function Glyph({ glyph = "a" }: { glyph?: string }) {
+export function Glyph({ glyph = "{" }: { glyph?: string }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
@@ -87,6 +87,7 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
               scale={scale}
             />
           </Group>
+          <Circle x={halfSize} y={halfSize} radius={3} fill="#c2c2c2" />
           <Group>
             <AxisLine
               color='#ebcc34'
@@ -107,6 +108,39 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
               scale={scale}
             />
           </Group>
+          {outline.bbox && (
+            <Group>
+              <AxisLine
+                color='#05a3ff'
+                orientation='h'
+                offset={outline.bbox.y_min}
+                physicalSize={physicalSize}
+                scale={scale}
+              />
+              <AxisLine
+                color='#05a3ff'
+                orientation='h'
+                offset={outline.bbox.y_max}
+                physicalSize={physicalSize}
+                scale={scale}
+              />
+              <AxisLine
+                color='#05a3ff'
+                orientation='v'
+                offset={outline.bbox.x_min}
+                physicalSize={physicalSize}
+                scale={scale}
+              />
+              <AxisLine
+                color='#05a3ff'
+                orientation='v'
+                offset={outline.bbox.x_max}
+                physicalSize={physicalSize}
+                scale={scale}
+              />
+            </Group>
+          )}
+
           <Shape
             x={0}
             y={0}
@@ -138,8 +172,7 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
                     point.x,
                     point.y
                   );
-                else if (cmd.tag == DrawCommandTag.Close)
-                  context.closePath();
+                else if (cmd.tag == DrawCommandTag.Close) context.closePath();
               });
 
               context.fillStrokeShape(shape);
