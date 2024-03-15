@@ -42,6 +42,42 @@ impl FontManager {
         }
     }
 
+    // fn outline_glyph(&mut self, c: char) -> &OutlineRender {
+    //     let face = self.face.as_face_ref();
+
+    //     let glyph_id = face.glyph_index(c).expect("Glyph not found");
+
+    //     let mut builder = InstructionOutlineBuilder::new();
+    //     let mut bbox = face.outline_glyph(glyph_id, &mut builder);
+
+    //     let upm = face.units_per_em();
+    //     let half_upm = (upm / 2) as f32;
+    //     let baseline = half_upm as f32;
+
+    //     for inst in builder.instructions.iter_mut() {
+    //         inst.translate(&Point::new(0.0, baseline));
+    //         inst.invert_y(half_upm);
+    //     }
+
+    //     let width = bbox
+    //         .map(|bbox| bbox.width())
+    //         .unwrap_or_else(|| face.global_bounding_box().width());
+
+    //     let advance_width = face
+    //         .glyph_hor_advance(glyph_id)
+    //         .unwrap_or_else(|| width as _);
+
+    //     let render = OutlineRender {
+    //         instructions: builder.instructions,
+    //         advance_width,
+    //         lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
+    //         upm
+    //     };
+
+    //     self.outlines_cache.insert(c, render);
+    //     self.outlines_cache.get(&c).unwrap()
+    // }
+
     fn outline_glyph(&mut self, c: char) -> &OutlineRender {
         let face = self.face.as_face_ref();
 
@@ -51,13 +87,6 @@ impl FontManager {
         let mut bbox = face.outline_glyph(glyph_id, &mut builder);
 
         let upm = face.units_per_em();
-        let half_upm = (upm / 2) as f32;
-        let baseline = half_upm as f32;
-
-        for inst in builder.instructions.iter_mut() {
-            inst.translate(&Point::new(0.0, baseline));
-            inst.invert_y(half_upm);
-        }
 
         let width = bbox
             .map(|bbox| bbox.width())
@@ -71,7 +100,8 @@ impl FontManager {
             instructions: builder.instructions,
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
-            upm
+            upm,
+            bbox: bbox.map(|bbox| bbox.into())
         };
 
         self.outlines_cache.insert(c, render);
@@ -96,7 +126,7 @@ pub fn fm_render_string(fm: &mut FontManager, text: &str, font_size: f32) -> Vec
     let scale = 1.0 / units_per_em * font_size;
 
     text.chars()
-        .map(|c| fm.outline_glyph(c).clone().scaled(scale))
+        .map(|c| fm.outline_glyph(c).clone())
         .collect()
 
     // let mut renders = vec![];
@@ -107,4 +137,9 @@ pub fn fm_render_string(fm: &mut FontManager, text: &str, font_size: f32) -> Vec
     // }
 
     // renders
+}
+
+#[wasm_bindgen]
+pub fn fm_render_char(fm: &mut FontManager, c: char) -> OutlineRender {
+    fm.outline_glyph(c).clone()
 }

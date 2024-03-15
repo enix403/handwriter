@@ -55,21 +55,22 @@ pub struct OutlineRender {
     pub advance_width: u16,
     /// Left side bearing
     pub lsb: i16,
-    pub upm: u16
+    pub upm: u16,
     // pub tight_width: i16,
+    pub bbox: Option<holders::Rect>,
 }
 
-impl OutlineRender {
-    pub fn scaled(mut self, scale: f32) -> Self {
-        for inst in self.instructions.iter_mut() {
-            inst.scale(scale);
-        }
-        self.advance_width = ((self.advance_width as f32) * scale) as _;
-        self.lsb = ((self.lsb as f32) * scale) as _;
-        self.upm = ((self.upm as f32) * scale) as _;
-        self
-    }
-}
+// impl OutlineRender {
+//     pub fn scaled(mut self, scale: f32) -> Self {
+//         for inst in self.instructions.iter_mut() {
+//             inst.scale(scale);
+//         }
+//         self.advance_width = ((self.advance_width as f32) * scale) as _;
+//         self.lsb = ((self.lsb as f32) * scale) as _;
+//         self.upm = ((self.upm as f32) * scale) as _;
+//         self
+//     }
+// }
 
 pub struct InstructionOutlineBuilder {
     pub instructions: Vec<DrawInstruction>,

@@ -30,6 +30,7 @@ import { theme } from "./theme";
 // Pages
 import { Scratch } from "./features/Scratch";
 import { useEffect, useState } from "react";
+import { Glyph } from "./features/Glyph";
 
 export function App() {
   let [loading, setLoading] = useState(true);
@@ -57,6 +58,7 @@ export function App() {
             <BrowserRouter>
               <Routes>
                 <Route path='/' Component={Scratch} />
+                <Route path='/glyph' Component={Glyph} />
               </Routes>
             </BrowserRouter>
           </MantineProvider>
