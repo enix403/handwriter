@@ -35,6 +35,12 @@ impl DrawInstruction {
         self.point3.y = top_y - self.point3.y;
     }
 
+    pub fn scale_y(&mut self, factor: f32) {
+        self.point1.y *= factor;
+        self.point2.y *= factor;
+        self.point3.y *= factor;
+    }
+
     pub fn scale(&mut self, factor: f32) {
         self.point1 *= factor;
         self.point2 *= factor;
@@ -49,6 +55,7 @@ pub struct OutlineRender {
     pub advance_width: u16,
     /// Left side bearing
     pub lsb: i16,
+    pub upm: u16
     // pub tight_width: i16,
 }
 
@@ -57,11 +64,9 @@ impl OutlineRender {
         for inst in self.instructions.iter_mut() {
             inst.scale(scale);
         }
-        // self.aabb.x_max = ((self.aabb.x_max as f32) * scale) as _;
-        // self.aabb.y_max = ((self.aabb.y_max as f32) * scale) as _;
         self.advance_width = ((self.advance_width as f32) * scale) as _;
         self.lsb = ((self.lsb as f32) * scale) as _;
-        // self.tight_width = ((self.tight_width as f32) * scale) as _;
+        self.upm = ((self.upm as f32) * scale) as _;
         self
     }
 }

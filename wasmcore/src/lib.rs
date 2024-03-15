@@ -51,12 +51,12 @@ impl FontManager {
         let mut bbox = face.outline_glyph(glyph_id, &mut builder);
 
         let upm = face.units_per_em();
-        let mirror = upm / 2;
-        let baseline = mirror as f32;
+        let half_upm = (upm / 2) as f32;
+        let baseline = half_upm as f32;
 
         for inst in builder.instructions.iter_mut() {
             inst.translate(&Point::new(0.0, baseline));
-            inst.invert_y(mirror as _);
+            inst.invert_y(half_upm);
         }
 
         let width = bbox
@@ -71,6 +71,7 @@ impl FontManager {
             instructions: builder.instructions,
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
+            upm
         };
 
         self.outlines_cache.insert(c, render);

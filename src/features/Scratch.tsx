@@ -35,9 +35,9 @@ function TextComponent({
 
         context.beginPath();
         for (let i = 0; i < renders.length; ++i) {
-          let { advance_width, instructions } = renders[i];
+          let { lsb, advance_width, instructions, upm } = renders[i];
 
-          // context.strokeRect(lsb + left, 0, tight_width, tight_height);
+          // context.strokeRect(left, 0, advance_width, upm);
 
           instructions.forEach(inst => {
             let { point1, point2, point3 } = inst;
@@ -70,6 +70,7 @@ function TextComponent({
           });
 
           left += advance_width;
+          // left += upm;
         }
 
         context.fillStrokeShape(shape);
@@ -92,8 +93,8 @@ function Canvas({ width, height }) {
       <Layer ref={layerRef}>
         <TextComponent
           fm={fm}
-          text='Fade Up'
-          fontSize={100}
+          text='There are 3 types of flags'
+          fontSize={24}
           position={{ x: 10, y: 100 }}
         />
       </Layer>
