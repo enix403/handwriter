@@ -32,11 +32,11 @@ const AxisLine = ({
   return <Line points={points} stroke={color} strokeWidth={2} />;
 };
 
-export function Glyph({ glyph = "{" }: { glyph?: string }) {
+export function Glyph({ glyph = "M" }: { glyph?: string }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  const emSize = 250;
+  const emSize = 350;
   const padding = 300;
   const physicalSize = emSize + padding;
   const halfSize = physicalSize / 2;

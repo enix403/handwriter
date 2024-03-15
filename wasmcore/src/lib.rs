@@ -27,8 +27,8 @@ pub fn initialize() {
 impl FontManager {
     fn new() -> Self {
         // let font_data = include_bytes!("../FiraCode-Regular.ttf");
-        // let font_data = include_bytes!("../Roboto-Regular.ttf");
-        let font_data = include_bytes!("../Poppins-Regular.ttf");
+        let font_data = include_bytes!("../Roboto-Regular.ttf");
+        // let font_data = include_bytes!("../Poppins-Regular.ttf");
 
         let face = match ttf::OwnedFace::from_vec(font_data.as_ref().to_owned(), 0) {
             Ok(f) => f,
