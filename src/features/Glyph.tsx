@@ -13,14 +13,17 @@ const AxisLine = ({
   scale,
   physicalSize,
   offset,
-  color = "#a0a0a0"
+  color = "#a0a0a0",
+  origin
 }: {
   orientation?: "h" | "v";
   scale: number;
   physicalSize: number;
   offset: number;
+  origin: Vector2d;
   color?: string;
 }) => {
+  offset -= orientation == "h" ? origin.y : origin.x;
   let dirOffset = orientation == "h" ? -offset : offset;
   let dist = physicalSize / 2 + dirOffset * scale;
 
@@ -32,12 +35,12 @@ const AxisLine = ({
   return <Line points={points} stroke={color} strokeWidth={2} />;
 };
 
-export function Glyph({ glyph = "M" }: { glyph?: string }) {
+export function Glyph({ glyph = "A" }: { glyph?: string }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  const emSize = 350;
-  const padding = 300;
+  const emSize = 100;
+  const padding = 10;
   const physicalSize = emSize + padding;
   const halfSize = physicalSize / 2;
 
@@ -50,19 +53,31 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
     useObject(() => wasmCore.fm_render_char(fm, glyph))
   );
 
+  let [origin, setOrigin] = useState<Vector2d>({ x: 0, y: 0 });
+
   useEffect(() => {
-    if (isCoreLoaded()) setOutline(wasmCore.fm_render_char(fm, glyph));
+    if (!isCoreLoaded()) return;
+
+    let outline = wasmCore.fm_render_char(fm, glyph);
+    setOutline(outline);
+
+    if (outline.bbox) {
+      let box = outline.bbox;
+      let ox = (box.x_min + box.x_max) / 2;
+      let oy = (box.y_min + box.y_max) / 2;
+      setOrigin({ x: ox, y: oy });
+    }
   }, [glyph]);
 
   function transform({ x, y }: Vector2d): Vector2d {
     return {
-      x: halfSize + x * scale,
-      y: halfSize - y * scale
+      x: halfSize + (x - origin.x) * scale,
+      y: halfSize - (y - origin.y) * scale
     };
   }
 
   return (
-    <div className='flex flex-1 flex-col items-center justify-center'>
+    <div className='flex flex-1 flex-col p-8'>
       <Stage ref={stageRef} width={physicalSize} height={physicalSize}>
         <Layer ref={layerRef}>
           <Rect
@@ -71,12 +86,13 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
             stroke='#a0a0a0'
             strokeWidth={4}
           />
-          <Group>
+          {/* <Group>
             <AxisLine
               color='#e0e0e0'
               offset={0}
               orientation='h'
               physicalSize={physicalSize}
+              origin={origin}
               scale={scale}
             />
             <AxisLine
@@ -84,30 +100,42 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
               offset={0}
               orientation='v'
               physicalSize={physicalSize}
+              origin={origin}
               scale={scale}
             />
           </Group>
-          <Circle x={halfSize} y={halfSize} radius={3} fill="#c2c2c2" />
-          <Group>
+          <Circle x={halfSize} y={halfSize} radius={3} fill="#c2c2c2" /> */}
+          {/* <Group>
             <AxisLine
               color='#ebcc34'
               offset={fontMetrics.capital_height}
               physicalSize={physicalSize}
+              origin={origin}
               scale={scale}
             />
             <AxisLine
               color='#ebcc34'
               offset={fontMetrics.ascender}
               physicalSize={physicalSize}
+              origin={origin}
               scale={scale}
             />
             <AxisLine
               color='#ebcc34'
               offset={fontMetrics.descender}
               physicalSize={physicalSize}
+              origin={origin}
               scale={scale}
             />
-          </Group>
+          </Group> */}
+          <AxisLine
+            color='#e0e0e0'
+            offset={0}
+            orientation='h'
+            physicalSize={physicalSize}
+            origin={origin}
+            scale={scale}
+          />
           {outline.bbox && (
             <Group>
               <AxisLine
@@ -115,6 +143,7 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
                 orientation='h'
                 offset={outline.bbox.y_min}
                 physicalSize={physicalSize}
+                origin={origin}
                 scale={scale}
               />
               <AxisLine
@@ -122,6 +151,7 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
                 orientation='h'
                 offset={outline.bbox.y_max}
                 physicalSize={physicalSize}
+                origin={origin}
                 scale={scale}
               />
               <AxisLine
@@ -129,6 +159,7 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
                 orientation='v'
                 offset={outline.bbox.x_min}
                 physicalSize={physicalSize}
+                origin={origin}
                 scale={scale}
               />
               <AxisLine
@@ -136,6 +167,7 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
                 orientation='v'
                 offset={outline.bbox.x_max}
                 physicalSize={physicalSize}
+                origin={origin}
                 scale={scale}
               />
             </Group>
@@ -183,9 +215,6 @@ export function Glyph({ glyph = "M" }: { glyph?: string }) {
           />
         </Layer>
       </Stage>
-      <p className='mt-4'>
-        <strong>Glyph: </strong> {glyph}
-      </p>
     </div>
   );
 }
