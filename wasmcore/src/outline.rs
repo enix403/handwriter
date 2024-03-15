@@ -58,6 +58,9 @@ pub struct OutlineRender {
     pub upm: u16,
     // pub tight_width: i16,
     pub bbox: Option<holders::Rect>,
+
+    pub ascender: i16,
+    pub descender: i16,
 }
 
 // impl OutlineRender {

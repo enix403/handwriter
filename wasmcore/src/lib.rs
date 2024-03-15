@@ -26,7 +26,9 @@ pub fn initialize() {
 
 impl FontManager {
     fn new() -> Self {
-        let font_data = include_bytes!("../FiraCode-Regular.ttf");
+        // let font_data = include_bytes!("../FiraCode-Regular.ttf");
+        // let font_data = include_bytes!("../Roboto-Regular.ttf");
+        let font_data = include_bytes!("../Poppins-Regular.ttf");
 
         let face = match ttf::OwnedFace::from_vec(font_data.as_ref().to_owned(), 0) {
             Ok(f) => f,
@@ -101,7 +103,9 @@ impl FontManager {
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
             upm,
-            bbox: bbox.map(|bbox| bbox.into())
+            bbox: bbox.map(|bbox| bbox.into()),
+            ascender: face.capital_height().unwrap_or(0),
+            descender: face.descender(),
         };
 
         self.outlines_cache.insert(c, render);

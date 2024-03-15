@@ -49,36 +49,10 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
             x={0}
             y={0}
             sceneFunc={(context, shape) => {
-              // context.beginPath();
-              // {
-              //   let upm = 2048;
-              //   let scale = physicalSize / upm;
-              //   let point: Vector2d = { x: -upm / 2, y: upm / 2 };
-
-              //   let origin = transform(0, 0);
-              //   point = [point].map(p => ({
-              //     x: p.x * scale,
-              //     y: p.y * scale
-              //   }))
-              //   .map(p => transform(p.x, p.y))[0];
-
-
-              //   console.log(origin, point);
-
-              //   context.moveTo(origin.x, origin.y);
-              //   context.lineTo(point.x, point.y);
-              //   context.lineTo(origin.x + 10, origin.y);
-              //   // context.arc(origin.x, origin.y, 10, 0, 2 * Math.PI);
-              //   context.closePath();
-              // }
-
-              // context.fillStrokeShape(shape);
-
-              // return;
 
               context.beginPath();
 
-              let { instructions, upm, bbox } = outline;
+              let { instructions, upm, bbox, ascender, descender } = outline;
               let box = bbox!;
 
               let origin = transform(0, 0);
@@ -96,16 +70,24 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
               box.y_min *= scale;
               box.y_max *= scale;
 
+              ascender *= scale;
+              descender *= scale;
+
               let bw = box.x_max - box.x_min;
               let bh = box.y_max - box.y_min;
 
-              // Horizontal
-              context.fillRect(0, halfSize - box.y_min - axisSize / 2, physicalSize, axisSize);
-              context.fillRect(0, halfSize - box.y_max - axisSize / 2, physicalSize, axisSize);
+              // Horizontal bound
+              // context.fillRect(0, halfSize - box.y_min - axisSize / 2, physicalSize, axisSize);
+              // context.fillRect(0, halfSize - box.y_max - axisSize / 2, physicalSize, axisSize);
 
-              // Vertical
+              // Vertical bound
               context.fillRect(halfSize + box.x_min - axisSize / 2, 0, axisSize, physicalSize)
               context.fillRect(halfSize + box.x_max - axisSize / 2, 0, axisSize, physicalSize)
+
+              // Horizontal ascender
+              context.fillRect(0, halfSize - ascender - axisSize / 2, physicalSize, axisSize);
+              context.fillRect(0, halfSize - descender - axisSize / 2, physicalSize, axisSize);
+
 
               instructions.forEach(inst => {
                 let { point1, point2, point3 } = inst;
