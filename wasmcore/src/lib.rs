@@ -8,7 +8,7 @@ use owned_ttf_parser::{self as ttf, AsFaceRef};
 use wasm_bindgen::prelude::*;
 
 mod outline;
-use outline::{DrawCommand, InstructionOutlineBuilder, OutlineRender};
+use outline::{InstructionOutlineBuilder, OutlineRender};
 
 mod holders;
 pub use holders::Point;
@@ -61,7 +61,7 @@ impl FontManager {
             .unwrap_or_else(|| width as _);
 
         let render = OutlineRender {
-            commands: builder.commands,
+            instructions: builder.instructions,
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
             bbox: bbox.map(|bbox| bbox.into()),
