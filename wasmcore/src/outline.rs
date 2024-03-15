@@ -5,7 +5,7 @@ use crate::holders::{self, Point};
 
 #[wasm_bindgen]
 #[derive(Copy, Clone, Debug)]
-pub enum DrawInstructionTag {
+pub enum DrawCommandTag {
     MoveTo,
     LineTo,
     QuadTo,
@@ -15,18 +15,18 @@ pub enum DrawInstructionTag {
 
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Clone, Debug)]
-pub struct DrawInstruction {
-    pub tag: DrawInstructionTag,
-    pub point1: Point,
-    pub point2: Point,
-    pub point3: Point,
+pub struct DrawCommand {
+    pub tag: DrawCommandTag,
+    pub point: Point,
+    pub control1: Point,
+    pub control2: Point,
 }
 
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Clone)]
 pub struct OutlineRender {
     /// List of instructions
-    pub instructions: Vec<DrawInstruction>,
+    pub commands: Vec<DrawCommand>,
     /// Advance Width
     pub advance_width: u16,
     /// Left side bearing
@@ -36,13 +36,13 @@ pub struct OutlineRender {
 }
 
 pub struct InstructionOutlineBuilder {
-    pub instructions: Vec<DrawInstruction>,
+    pub commands: Vec<DrawCommand>,
 }
 
 impl InstructionOutlineBuilder {
     pub fn new() -> Self {
         Self {
-            instructions: vec![],
+            commands: vec![],
         }
     }
 }
@@ -50,47 +50,62 @@ impl InstructionOutlineBuilder {
 
 impl ttf::OutlineBuilder for InstructionOutlineBuilder {
     fn move_to(&mut self, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::MoveTo,
-            point1: Point::new(x, y),
-            point2: Point::zero(),
-            point3: Point::zero(),
+        self.commands.push(DrawCommand {
+            tag: DrawCommandTag::MoveTo,
+            point: Point::new(x, y),
+            control1: Point::zero(),
+            control2: Point::zero(),
+            // point1: Point::new(x, y),
+            // point2: Point::zero(),
+            // point3: Point::zero(),
         });
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::LineTo,
-            point1: Point::new(x, y),
-            point2: Point::zero(),
-            point3: Point::zero(),
+        self.commands.push(DrawCommand {
+            tag: DrawCommandTag::LineTo,
+            point: Point::new(x, y),
+            control1: Point::zero(),
+            control2: Point::zero(),
+            // point1: Point::new(x, y),
+            // point2: Point::zero(),
+            // point3: Point::zero(),
         });
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::QuadTo,
-            point1: Point::new(x1, y1),
-            point2: Point::new(x, y),
-            point3: Point::zero(),
+        self.commands.push(DrawCommand {
+            tag: DrawCommandTag::QuadTo,
+            point: Point::new(x, y),
+            control1: Point::new(x1, y1),
+            control2: Point::zero(),
+            // point1: Point::new(x1, y1),
+            // point2: Point::new(x, y),
+            // point3: Point::zero(),
         });
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::CurveTo,
-            point1: Point::new(x1, y1),
-            point2: Point::new(x2, y2),
-            point3: Point::new(x, y),
+        self.commands.push(DrawCommand {
+            tag: DrawCommandTag::CurveTo,
+            point: Point::new(x, y),
+            control1: Point::new(x1, y1),
+            control2: Point::new(x2, y2),
+            // point1: Point::new(x1, y1),
+            // point2: Point::new(x2, y2),
+            // point3: Point::new(x, y),
         });
     }
 
     fn close(&mut self) {
-        self.instructions.push(DrawInstruction {
-            tag: DrawInstructionTag::Close,
-            point1: Point::zero(),
-            point2: Point::zero(),
-            point3: Point::zero(),
+        self.commands.push(DrawCommand {
+            tag: DrawCommandTag::Close,
+            point: Point::zero(),
+            control1: Point::zero(),
+            control2: Point::zero(),
+            // point1: Point::zero(),
+            // point2: Point::zero(),
+            // point3: Point::zero(),
         });
     }
 }

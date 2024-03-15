@@ -5,7 +5,7 @@ import { isCoreLoaded, wasmCore } from "@/tunnel";
 import { Group, Layer, Line, Rect, Shape, Stage } from "react-konva";
 import { Vector2d } from "konva/lib/types";
 
-const {  DrawInstructionTag } = wasmCore;
+const { DrawCommandTag } = wasmCore;
 // window.DrawCommandTag = DrawCommandTag
 
 const AxisLine = ({
@@ -54,7 +54,7 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
     if (isCoreLoaded()) setOutline(wasmCore.fm_render_char(fm, glyph));
   }, [glyph]);
 
-  function transform({x, y}: Vector2d): Vector2d {
+  function transform({ x, y }: Vector2d): Vector2d {
     return {
       x: halfSize + x * scale,
       y: halfSize - y * scale
@@ -113,49 +113,34 @@ export function Glyph({ glyph = "a" }: { glyph?: string }) {
             sceneFunc={(context, shape) => {
               context.beginPath();
 
-              let {
-                instructions,
-                bbox,
-              } = outline;
+              outline.commands.forEach(cmd => {
+                let point = transform(cmd.point);
+                let control1 = transform(cmd.control1);
+                let control2 = transform(cmd.control2);
 
-              instructions.forEach(inst => {
-                let point1 = transform(inst.point1);
-                let point2 = transform(inst.point2);
-                let point3 = transform(inst.point3);
-
-                if (inst.tag == DrawInstructionTag.MoveTo)
-                  context.moveTo(point1.x, point1.y);
-                else if (inst.tag == DrawInstructionTag.LineTo)
-                  context.lineTo(point1.x, point1.y);
-                else if (inst.tag == DrawInstructionTag.QuadTo)
+                if (cmd.tag == DrawCommandTag.MoveTo)
+                  context.moveTo(point.x, point.y);
+                else if (cmd.tag == DrawCommandTag.LineTo)
+                  context.lineTo(point.x, point.y);
+                else if (cmd.tag == DrawCommandTag.QuadTo)
                   context.quadraticCurveTo(
-                    point1.x,
-                    point1.y,
-                    point2.x,
-                    point2.y
+                    control1.x,
+                    control1.y,
+                    point.x,
+                    point.y
                   );
-                else if (inst.tag == DrawInstructionTag.CurveTo)
+                else if (cmd.tag == DrawCommandTag.CurveTo)
                   context.bezierCurveTo(
-                    point1.x,
-                    point1.y,
-                    point2.x,
-                    point2.y,
-                    point3.x,
-                    point3.y
+                    control1.x,
+                    control1.y,
+                    control2.x,
+                    control2.y,
+                    point.x,
+                    point.y
                   );
-                else if (inst.tag == DrawInstructionTag.Close)
+                else if (cmd.tag == DrawCommandTag.Close)
                   context.closePath();
               });
-
-              // let rectSize = 200;
-              // let start = transform(-rectSize / 2, rectSize / 2);
-
-              // context.rect(
-              //   start.x,
-              //   start.y,
-              //   rectSize,
-              //   rectSize
-              // );
 
               context.fillStrokeShape(shape);
               context.strokeShape(shape);

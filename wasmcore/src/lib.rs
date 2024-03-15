@@ -61,7 +61,7 @@ impl FontManager {
             .unwrap_or_else(|| width as _);
 
         let render = OutlineRender {
-            instructions: builder.instructions,
+            commands: builder.commands,
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
             bbox: bbox.map(|bbox| bbox.into()),
