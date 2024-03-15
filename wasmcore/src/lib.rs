@@ -8,7 +8,7 @@ use owned_ttf_parser::{self as ttf, AsFaceRef};
 use wasm_bindgen::prelude::*;
 
 mod outline;
-use outline::{DrawInstruction, InstructionOutlineBuilder, OutlineRender};
+use outline::{DrawCommand, InstructionOutlineBuilder, OutlineRender};
 
 mod holders;
 pub use holders::Point;
@@ -44,42 +44,6 @@ impl FontManager {
         }
     }
 
-    // fn outline_glyph(&mut self, c: char) -> &OutlineRender {
-    //     let face = self.face.as_face_ref();
-
-    //     let glyph_id = face.glyph_index(c).expect("Glyph not found");
-
-    //     let mut builder = InstructionOutlineBuilder::new();
-    //     let mut bbox = face.outline_glyph(glyph_id, &mut builder);
-
-    //     let upm = face.units_per_em();
-    //     let half_upm = (upm / 2) as f32;
-    //     let baseline = half_upm as f32;
-
-    //     for inst in builder.instructions.iter_mut() {
-    //         inst.translate(&Point::new(0.0, baseline));
-    //         inst.invert_y(half_upm);
-    //     }
-
-    //     let width = bbox
-    //         .map(|bbox| bbox.width())
-    //         .unwrap_or_else(|| face.global_bounding_box().width());
-
-    //     let advance_width = face
-    //         .glyph_hor_advance(glyph_id)
-    //         .unwrap_or_else(|| width as _);
-
-    //     let render = OutlineRender {
-    //         instructions: builder.instructions,
-    //         advance_width,
-    //         lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
-    //         upm
-    //     };
-
-    //     self.outlines_cache.insert(c, render);
-    //     self.outlines_cache.get(&c).unwrap()
-    // }
-
     fn outline_glyph(&mut self, c: char) -> &OutlineRender {
         let face = self.face.as_face_ref();
 
@@ -87,8 +51,6 @@ impl FontManager {
 
         let mut builder = InstructionOutlineBuilder::new();
         let mut bbox = face.outline_glyph(glyph_id, &mut builder);
-
-        let upm = face.units_per_em();
 
         let width = bbox
             .map(|bbox| bbox.width())
@@ -99,14 +61,10 @@ impl FontManager {
             .unwrap_or_else(|| width as _);
 
         let render = OutlineRender {
-            instructions: builder.instructions,
+            commands: builder.commands,
             advance_width,
             lsb: face.glyph_hor_side_bearing(glyph_id).unwrap_or(0),
-            upm,
             bbox: bbox.map(|bbox| bbox.into()),
-            capital_height: face.capital_height().unwrap_or(0),
-            ascender: face.ascender(),
-            descender: face.descender(),
         };
 
         self.outlines_cache.insert(c, render);
@@ -115,36 +73,37 @@ impl FontManager {
 }
 
 #[wasm_bindgen]
+pub struct FontMetrics {
+    // Units per EM Square
+    pub upm: u16,
+    // Capital Height of the font
+    pub capital_height: i16,
+    // Ascender of the font
+    pub ascender: i16,
+    // Descender of the font
+    pub descender: i16,
+}
+
+#[wasm_bindgen]
 pub fn fm_create() -> FontManager {
     FontManager::new()
 }
 
 #[wasm_bindgen]
-pub fn fm_render_string(fm: &mut FontManager, text: &str, font_size: f32) -> Vec<OutlineRender> {
+pub fn fm_metrics(fm: &FontManager) -> FontMetrics {
     let face = fm.face.as_face_ref();
 
-    // let point_size = 52 as f32;
-    let resolution = 72 as f32;
-    let units_per_em = face.units_per_em() as f32;
-
-    // let scale = point_size * resolution / (72.0 * units_per_em);
-    let scale = 1.0 / units_per_em * font_size;
-
-    text.chars()
-        .map(|c| fm.outline_glyph(c).clone())
-        .collect()
-
-    // let mut renders = vec![];
-
-    // for c in text.chars() {
-    //     let mut render = fm.outline_glyph(c);
-    //     renders.push(render.clone().scaled(scale));
-    // }
-
-    // renders
+    FontMetrics {
+        upm: face.units_per_em(),
+        capital_height: face.capital_height().unwrap_or(0),
+        ascender: face.ascender(),
+        descender: face.descender(),
+    }
 }
+
 
 #[wasm_bindgen]
 pub fn fm_render_char(fm: &mut FontManager, c: char) -> OutlineRender {
     fm.outline_glyph(c).clone()
 }
+
