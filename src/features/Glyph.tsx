@@ -35,12 +35,12 @@ const AxisLine = ({
   return <Line points={points} stroke={color} strokeWidth={2} />;
 };
 
-export function Glyph({ glyph = "A" }: { glyph?: string }) {
+export function Glyph({ glyph }: { glyph: string }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  const emSize = 100;
-  const padding = 10;
+  const emSize = 300;
+  const padding = 100;
   const physicalSize = emSize + padding;
   const halfSize = physicalSize / 2;
 
@@ -77,16 +77,15 @@ export function Glyph({ glyph = "A" }: { glyph?: string }) {
   }
 
   return (
-    <div className='flex flex-1 flex-col p-8'>
-      <Stage ref={stageRef} width={physicalSize} height={physicalSize}>
-        <Layer ref={layerRef}>
-          <Rect
-            width={physicalSize}
-            height={physicalSize}
-            stroke='#a0a0a0'
-            strokeWidth={4}
-          />
-          {/* <Group>
+    <Stage ref={stageRef} width={physicalSize} height={physicalSize}>
+      <Layer ref={layerRef}>
+        <Rect
+          width={physicalSize}
+          height={physicalSize}
+          stroke='#a0a0a0'
+          strokeWidth={4}
+        />
+        {/* <Group>
             <AxisLine
               color='#e0e0e0'
               offset={0}
@@ -105,7 +104,7 @@ export function Glyph({ glyph = "A" }: { glyph?: string }) {
             />
           </Group>
           <Circle x={halfSize} y={halfSize} radius={3} fill="#c2c2c2" /> */}
-          {/* <Group>
+        {/* <Group>
             <AxisLine
               color='#ebcc34'
               offset={fontMetrics.capital_height}
@@ -128,93 +127,98 @@ export function Glyph({ glyph = "A" }: { glyph?: string }) {
               scale={scale}
             />
           </Group> */}
-          <AxisLine
-            color='#e0e0e0'
-            offset={0}
-            orientation='h'
-            physicalSize={physicalSize}
-            origin={origin}
-            scale={scale}
-          />
-          {outline.bbox && (
-            <Group>
-              <AxisLine
-                color='#05a3ff'
-                orientation='h'
-                offset={outline.bbox.y_min}
-                physicalSize={physicalSize}
-                origin={origin}
-                scale={scale}
-              />
-              <AxisLine
-                color='#05a3ff'
-                orientation='h'
-                offset={outline.bbox.y_max}
-                physicalSize={physicalSize}
-                origin={origin}
-                scale={scale}
-              />
-              <AxisLine
-                color='#05a3ff'
-                orientation='v'
-                offset={outline.bbox.x_min}
-                physicalSize={physicalSize}
-                origin={origin}
-                scale={scale}
-              />
-              <AxisLine
-                color='#05a3ff'
-                orientation='v'
-                offset={outline.bbox.x_max}
-                physicalSize={physicalSize}
-                origin={origin}
-                scale={scale}
-              />
-            </Group>
-          )}
+        <AxisLine
+          color='#ebcc34'
+          offset={0}
+          orientation='h'
+          physicalSize={physicalSize}
+          origin={origin}
+          scale={scale}
+        />
+        {outline.bbox && (
+          <Group>
+            <AxisLine
+              color='#05a3ff'
+              orientation='h'
+              offset={outline.bbox.y_min}
+              physicalSize={physicalSize}
+              origin={origin}
+              scale={scale}
+            />
+            <AxisLine
+              color='#05a3ff'
+              orientation='h'
+              offset={outline.bbox.y_max}
+              physicalSize={physicalSize}
+              origin={origin}
+              scale={scale}
+            />
+            <AxisLine
+              color='#05a3ff'
+              orientation='v'
+              offset={outline.bbox.x_min}
+              physicalSize={physicalSize}
+              origin={origin}
+              scale={scale}
+            />
+            <AxisLine
+              color='#05a3ff'
+              orientation='v'
+              offset={outline.bbox.x_max}
+              physicalSize={physicalSize}
+              origin={origin}
+              scale={scale}
+            />
+          </Group>
+        )}
 
-          <Shape
-            x={0}
-            y={0}
-            sceneFunc={(context, shape) => {
-              context.beginPath();
+        <Shape
+          x={0}
+          y={0}
+          sceneFunc={(context, shape) => {
+            context.beginPath();
 
-              outline.commands.forEach(cmd => {
-                let point = transform(cmd.point);
-                let control1 = transform(cmd.control1);
-                let control2 = transform(cmd.control2);
+            outline.commands.forEach(cmd => {
+              let point = transform(cmd.point);
+              let control1 = transform(cmd.control1);
+              let control2 = transform(cmd.control2);
 
-                if (cmd.tag == DrawCommandTag.MoveTo)
-                  context.moveTo(point.x, point.y);
-                else if (cmd.tag == DrawCommandTag.LineTo)
-                  context.lineTo(point.x, point.y);
-                else if (cmd.tag == DrawCommandTag.QuadTo)
-                  context.quadraticCurveTo(
-                    control1.x,
-                    control1.y,
-                    point.x,
-                    point.y
-                  );
-                else if (cmd.tag == DrawCommandTag.CurveTo)
-                  context.bezierCurveTo(
-                    control1.x,
-                    control1.y,
-                    control2.x,
-                    control2.y,
-                    point.x,
-                    point.y
-                  );
-                else if (cmd.tag == DrawCommandTag.Close) context.closePath();
-              });
+              if (cmd.tag == DrawCommandTag.MoveTo)
+                context.moveTo(point.x, point.y);
+              else if (cmd.tag == DrawCommandTag.LineTo)
+                context.lineTo(point.x, point.y);
+              else if (cmd.tag == DrawCommandTag.QuadTo)
+                context.quadraticCurveTo(
+                  control1.x,
+                  control1.y,
+                  point.x,
+                  point.y
+                );
+              else if (cmd.tag == DrawCommandTag.CurveTo)
+                context.bezierCurveTo(
+                  control1.x,
+                  control1.y,
+                  control2.x,
+                  control2.y,
+                  point.x,
+                  point.y
+                );
+              else if (cmd.tag == DrawCommandTag.Close) context.closePath();
+            });
 
-              context.fillStrokeShape(shape);
-              context.strokeShape(shape);
-            }}
-            stroke='black'
-            fill='#808080'
-          />
-        </Layer>
-      </Stage>
-    </div>
+            context.fillStrokeShape(shape);
+            context.strokeShape(shape);
+          }}
+          stroke='black'
+          fill='#808080'
+        />
+      </Layer>
+    </Stage>
   );
+}
+
+export function GlyphSet() {
+  return <div className='flex flex-1 flex-row items-center justify-center'>
+    <Glyph glyph="*" />
+  </div>;
 }
