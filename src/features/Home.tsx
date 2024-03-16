@@ -49,13 +49,24 @@ function TextComponent({
     };
   }
 
-  let wrapWidth = 200;
-
   return (
     <Shape
       x={position.x}
       y={position.y}
       fill='black'
+      hitFunc={(context, shape) => {
+        let height = (metrics.ascender - metrics.descender) * scale;
+        let width =
+          outlines.reduce((prev, outline) => prev + outline.advance_width, 0) *
+          scale;
+
+        let pad = 10;
+
+        context.beginPath();
+        context.rect(-pad, -pad, width + pad * 2, height + pad * 2);
+        context.closePath();
+        context.fillStrokeShape(shape);
+      }}
       sceneFunc={(context, shape) => {
         if (outlines.length === 0) return;
 
@@ -112,17 +123,22 @@ function Canvas({ width, height }) {
     return {
       fm,
       metrics
-    }
+    };
   });
 
   return (
     <FontObjectContext.Provider value={fontObject}>
-      <Stage ref={stageRef} width={width} height={height}>
+      <Stage
+        ref={stageRef}
+        // onClick={() => layerRef.current?.toggleHitCanvas()}
+        width={width}
+        height={height}
+      >
         <Layer ref={layerRef}>
           <TextComponent
             text={"They looked up at the sky and saw a million stars."}
             fontSize={20}
-            position={{ x: 0, y: 0 }}
+            position={{ x: 100, y: 100 }}
           />
         </Layer>
       </Stage>
