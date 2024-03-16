@@ -28,7 +28,7 @@ import { MantineProvider } from "@mantine/core";
 import { theme } from "./theme";
 
 // Pages
-import { Scratch } from "./features/Scratch";
+import { Home } from "./features/Home";
 import { useEffect, useState } from "react";
 import { GlyphSet } from "./features/Glyph";
 
@@ -57,7 +57,7 @@ export function App() {
           <MantineProvider defaultColorScheme='light' theme={theme}>
             <BrowserRouter>
               <Routes>
-                <Route path='/' Component={Scratch} />
+                <Route path='/' Component={Home} />
                 <Route path='/glyphs' Component={GlyphSet} />
               </Routes>
             </BrowserRouter>

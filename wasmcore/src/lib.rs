@@ -101,9 +101,12 @@ pub fn fm_metrics(fm: &FontManager) -> FontMetrics {
     }
 }
 
-
 #[wasm_bindgen]
 pub fn fm_render_char(fm: &mut FontManager, c: char) -> OutlineRender {
     fm.outline_glyph(c).clone()
 }
 
+#[wasm_bindgen]
+pub fn fm_render_string(fm: &mut FontManager, text: &str) -> Vec<OutlineRender> {
+    text.chars().map(|c| fm.outline_glyph(c).clone()).collect()
+}
