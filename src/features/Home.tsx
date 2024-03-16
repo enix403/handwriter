@@ -33,10 +33,10 @@ function TextComponent({
   let scale = (1.0 / fontMetrics.upm) * fontSize;
   let baselineY = fontMetrics.ascender * scale;
 
-  function transform({ x, y }: Vector2d, left: number, top: number): Vector2d {
+  function transform({ x, y }: Vector2d, left: number): Vector2d {
     return {
       x: left + x * scale,
-      y: top + baselineY - y * scale
+      y: baselineY - y * scale
     };
   }
 
@@ -48,29 +48,19 @@ function TextComponent({
       y={position.y}
       fill='black'
       sceneFunc={(context, shape) => {
-        // context.beginPath();
-        // context.fillRect(0, 0, 100, 100);
-        // context.fillStrokeShape(shape);
-
         if (outlines.length === 0) return;
 
         context.beginPath();
 
         let left = 0;
-        let top = 0;
 
         for (let i = 0; i < outlines.length; ++i) {
-          // Some really basic text wrapping
-          if (left >= wrapWidth) {
-            left = 0;
-            top += (fontMetrics.ascender - fontMetrics.descender) * scale;
-          }
 
           let outline = outlines[i];
           outline.commands.forEach(cmd => {
-            let point = transform(cmd.point, left, top);
-            let control1 = transform(cmd.control1, left, top);
-            let control2 = transform(cmd.control2, left, top);
+            let point = transform(cmd.point, left);
+            let control1 = transform(cmd.control1, left);
+            let control2 = transform(cmd.control2, left);
 
             if (cmd.tag == DrawCommandTag.MoveTo)
               context.moveTo(point.x, point.y);
@@ -115,7 +105,7 @@ function Canvas({ width, height }) {
       <Layer ref={layerRef}>
         <TextComponent
           fm={fm}
-          text='They looked up at the sky and saw a million stars.'
+          text={'They looked up at the sky and saw a million stars.'}
           fontSize={20}
           position={{ x: 0, y: 0 }}
         />
