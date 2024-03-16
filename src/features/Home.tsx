@@ -1,6 +1,6 @@
 import useSize from "@react-hook/size";
 import Konva from "konva";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Layer, Shape, Stage } from "react-konva";
 import { isCoreLoaded, wasmCore } from "@/tunnel";
 import { useObject } from "./hooks";
@@ -8,18 +8,27 @@ import { Vector2d } from "konva/lib/types";
 
 const { DrawCommandTag } = wasmCore;
 
+interface FontObject {
+  fm: wasmCore.FontManager;
+  metrics: wasmCore.FontMetrics;
+}
+
+const FontObjectContext = createContext<FontObject | null>(null);
+
+function useFontObject() {
+  return useContext(FontObjectContext)!;
+}
+
 function TextComponent({
   position,
-  fm,
   text,
   fontSize
 }: {
   position: Vector2d;
-  fm: wasmCore.FontManager;
   text: string;
   fontSize: number;
 }) {
-  const fontMetrics = useObject(() => wasmCore.fm_metrics(fm));
+  const { fm, metrics } = useFontObject();
 
   const [outlines, setOutlines] = useState<wasmCore.OutlineRender[]>([]);
 
@@ -30,8 +39,8 @@ function TextComponent({
     setOutlines(outlines);
   }, [text]);
 
-  let scale = (1.0 / fontMetrics.upm) * fontSize;
-  let baselineY = fontMetrics.ascender * scale;
+  let scale = (1.0 / metrics.upm) * fontSize;
+  let baselineY = metrics.ascender * scale;
 
   function transform({ x, y }: Vector2d, left: number): Vector2d {
     return {
@@ -55,7 +64,6 @@ function TextComponent({
         let left = 0;
 
         for (let i = 0; i < outlines.length; ++i) {
-
           let outline = outlines[i];
           outline.commands.forEach(cmd => {
             let point = transform(cmd.point, left);
@@ -98,19 +106,27 @@ function Canvas({ width, height }) {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
 
-  const fm = useObject(() => wasmCore?.fm_create());
+  const fontObject: FontObject = useObject(() => {
+    let fm = wasmCore.fm_create();
+    let metrics = wasmCore.fm_metrics(fm);
+    return {
+      fm,
+      metrics
+    }
+  });
 
   return (
-    <Stage ref={stageRef} width={width} height={height}>
-      <Layer ref={layerRef}>
-        <TextComponent
-          fm={fm}
-          text={'They looked up at the sky and saw a million stars.'}
-          fontSize={20}
-          position={{ x: 0, y: 0 }}
-        />
-      </Layer>
-    </Stage>
+    <FontObjectContext.Provider value={fontObject}>
+      <Stage ref={stageRef} width={width} height={height}>
+        <Layer ref={layerRef}>
+          <TextComponent
+            text={"They looked up at the sky and saw a million stars."}
+            fontSize={20}
+            position={{ x: 0, y: 0 }}
+          />
+        </Layer>
+      </Stage>
+    </FontObjectContext.Provider>
   );
 }
 
