@@ -84,6 +84,7 @@ function Canvas({ width, height }) {
   return (
     <Stage ref={stageRef} onClick={addRandomNode} width={width} height={height}>
       <Layer ref={layerRef}>
+        <Rect width={width} height={height} fill='#F4F5F7' />
         {nodes.map(node => (
           <node.Component key={node.id} transform={node.transform} />
         ))}
@@ -97,14 +98,15 @@ export function Home() {
   const [width, height] = useSize(containerRef);
 
   return (
-    <div className='flex-1 self-stretch'>
-      <div
-        ref={containerRef}
-        className='fixed inset-0 flex flex-row-reverse px-2 py-1'
-      >
-        {width} x {height}
-      </div>
-      <Canvas width={width} height={height} />
-    </div>
+    <>
+      <main className='flex h-full max-h-full'>
+        <div className='w-64 border-r border-slate-400 '>
+          {width} x {height}
+        </div>
+        <div ref={containerRef} className='flex-1'>
+          <Canvas width={width} height={height} />
+        </div>
+      </main>
+    </>
   );
 }
