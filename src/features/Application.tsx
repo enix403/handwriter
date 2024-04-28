@@ -1,14 +1,16 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 
-interface SelectionInfo {
-  pointIndex: number;
-  pointSelected: boolean;
-}
+type KvMouseEvent = KonvaEventObject<MouseEvent>;
 
 const COLOR_NORMAL = "#0B1416";
 const COLOR_HIGHLIGHT = "#FF0000";
 const COLOR_SELECTED = "#00FF00";
+
+interface SelectionInfo {
+  pointIndex: number;
+  // pointSelected: boolean;
+}
 
 export class Application {
   private stage: Konva.Stage;
@@ -19,7 +21,7 @@ export class Application {
 
   private selection: SelectionInfo = {
     pointIndex: -1,
-    pointSelected: false
+    // pointSelected: false
   };
 
   constructor(stageContainer: HTMLDivElement, width: number, height: number) {
@@ -34,7 +36,7 @@ export class Application {
     this.pointsLayer = new Konva.Layer();
     this.stage.add(this.pointsLayer);
 
-    this.stage.on("click", this.handleClick);
+    this.stage.on("mousedown", this.handleMouseDown);
   }
 
   private createBackground(): Konva.Layer {
@@ -61,7 +63,7 @@ export class Application {
     this.bgRect?.height(height);
   }
 
-  public handleClick = (event: KonvaEventObject<MouseEvent>) => {
+  private addPoint = () => {
     let pos = this.stage.getPointerPosition()!;
 
     let point = new Konva.Circle({
@@ -74,7 +76,7 @@ export class Application {
     let thisPointIndex = this.points.length;
 
     point.on("mouseenter", () => {
-      if (this.selection.pointIndex != -1) {
+      if (this.selection.pointIndex === -1) {
         this.highlightPoint(thisPointIndex);
       }
     });
@@ -90,16 +92,26 @@ export class Application {
     this.highlightPoint(thisPointIndex);
   };
 
+  private handleMouseDown = () => {
+    if (this.selection.pointIndex === -1)
+      this.addPoint();
+  };
+
+  private handleMouseUp = () => {};
+  private handleMouseMove = () => {};
+
   private highlightPoint(index: number) {
     // unhighlight any previous point
     if (this.selection.pointIndex != -1) {
       let point = this.points[this.selection.pointIndex];
       point.fill(COLOR_NORMAL);
+      this.selection.pointIndex = -1;
+      // this.selection.pointSelected = false;
     }
 
     if (index != -1) {
       this.selection.pointIndex = index;
-      this.selection.pointSelected = false;
+      // this.selection.pointSelected = false;
 
       this.points[index].fill(COLOR_HIGHLIGHT);
     }
