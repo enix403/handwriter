@@ -30,7 +30,6 @@ import { theme } from "./theme";
 // Pages
 import { Home } from "./features/Home";
 import { useEffect, useState } from "react";
-import { GlyphSet } from "./features/Glyph";
 
 export function App() {
   let [loading, setLoading] = useState(true);
@@ -58,7 +57,6 @@ export function App() {
             <BrowserRouter>
               <Routes>
                 <Route path='/' Component={Home} />
-                <Route path='/glyphs' Component={GlyphSet} />
               </Routes>
             </BrowserRouter>
           </MantineProvider>

@@ -27,7 +27,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
-    "react-konva": "^18.2.10",
     "react-router-dom": "^6.22.1",
     "use-immer": "^0.9.0",
     "wasm-pack": "^0.12.1"
