@@ -53,7 +53,7 @@ export function App() {
           <Helmet>
             <title>Wiggly</title>
           </Helmet>
-          <MantineProvider defaultColorScheme='light' theme={theme}>
+          <MantineProvider defaultColorScheme='dark' theme={theme}>
             <BrowserRouter>
               <Routes>
                 <Route path='/' Component={Home} />

@@ -4,17 +4,30 @@ import { Vector2d } from "konva/lib/types";
 
 type KvMouseEvent = KonvaEventObject<MouseEvent>;
 
-const COLOR_NORMAL = "#0B1416";
+const COLOR_NORMAL = "#F4F5F7";
 const COLOR_HIGHLIGHT = "#FF0000";
 const COLOR_SELECTED = "#00FF00";
 
-const RECT_SIZE = 50;
+const RECT_SIZE = 100;
 
 interface SelectionInfo {
   nodeIndex: number;
   nodeSelected: boolean;
   mouseOffset: Vector2d;
 }
+
+abstract class EditorNode {
+  private group: Konva.Group;
+
+  constructor() {
+    this.group = new Konva.Group();
+  }
+
+  public getGroup(): Konva.Group {
+    return this.group;
+  }
+}
+
 
 export class Application {
   private stage: Konva.Stage;
@@ -54,7 +67,7 @@ export class Application {
       y: 0,
       width: 100,
       height: 100,
-      fill: "#F4F5F7"
+      fill: "#3b4547"
     });
 
     layer.add(this.bgRect);

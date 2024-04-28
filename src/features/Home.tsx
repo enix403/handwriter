@@ -23,7 +23,7 @@ export function Home() {
 
   return (
     <>
-      <main className='flex h-full max-h-full'>
+      <main className='flex h-full max-h-full bg-[#0B1416] text-white'>
         <div className='w-64 border-r border-slate-400 p-4 shrink-0'>
           Size:{" "}
           <Pill size='lg'>
