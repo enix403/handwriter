@@ -1,5 +1,6 @@
 import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
+import { Vector2d } from "konva/lib/types";
 
 type KvMouseEvent = KonvaEventObject<MouseEvent>;
 
@@ -7,21 +8,25 @@ const COLOR_NORMAL = "#0B1416";
 const COLOR_HIGHLIGHT = "#FF0000";
 const COLOR_SELECTED = "#00FF00";
 
+const RECT_SIZE = 50;
+
 interface SelectionInfo {
-  pointIndex: number;
-  pointSelected: boolean;
+  nodeIndex: number;
+  nodeSelected: boolean;
+  mouseOffset: Vector2d;
 }
 
 export class Application {
   private stage: Konva.Stage;
   private bgRect: Konva.Rect | null = null;
 
-  private pointsLayer: Konva.Layer;
-  private points: Array<Konva.Circle> = [];
+  private nodesLayer: Konva.Layer;
+  private nodes: Array<Konva.Rect> = [];
 
   private selection: SelectionInfo = {
-    pointIndex: -1,
-    pointSelected: false
+    nodeIndex: -1,
+    nodeSelected: false,
+    mouseOffset: { x: 0, y: 0 }
   };
 
   constructor(stageContainer: HTMLDivElement, width: number, height: number) {
@@ -33,8 +38,8 @@ export class Application {
 
     this.stage.add(this.createBackground());
 
-    this.pointsLayer = new Konva.Layer();
-    this.stage.add(this.pointsLayer);
+    this.nodesLayer = new Konva.Layer();
+    this.stage.add(this.nodesLayer);
 
     this.stage.on("mousedown", this.handleMouseDown);
     this.stage.on("mouseup", this.handleMouseUp);
@@ -65,43 +70,43 @@ export class Application {
     this.bgRect?.height(height);
   }
 
-  private addPoint = () => {
-    let pos = this.stage.getPointerPosition()!;
-
-    let point = new Konva.Circle({
-      x: pos.x,
-      y: pos.y,
-      radius: 20,
+  private addPoint = (mousePosition: Vector2d) => {
+    let node = new Konva.Rect({
+      x: mousePosition.x - RECT_SIZE / 2,
+      y: mousePosition.y - RECT_SIZE / 2,
+      width: RECT_SIZE,
+      height: RECT_SIZE,
       fill: COLOR_NORMAL
     });
 
-    let thisPointIndex = this.points.length;
+    let thisPointIndex = this.nodes.length;
 
-    point.on("mouseenter", () => {
-      if (this.selection.pointIndex === -1) {
+    node.on("mouseenter", () => {
+      if (this.selection.nodeIndex === -1) {
         this.highlightPoint(thisPointIndex);
       }
     });
 
-    point.on("mouseleave", () => {
+    node.on("mouseleave", () => {
       if (
-        this.selection.pointIndex === thisPointIndex &&
-        !this.selection.pointSelected
+        this.selection.nodeIndex === thisPointIndex &&
+        !this.selection.nodeSelected
       ) {
         this.highlightPoint(-1);
       }
     });
 
-    this.points.push(point);
-    this.pointsLayer.add(point);
+    this.nodes.push(node);
+    this.nodesLayer.add(node);
     this.highlightPoint(thisPointIndex);
   };
 
   private handleMouseDown = () => {
-    if (this.selection.pointIndex === -1) {
-      this.addPoint();
+    let mousePosition = this.stage.getPointerPosition()!;
+    if (this.selection.nodeIndex === -1) {
+      this.addPoint(mousePosition);
     } else {
-      this.selectPoint();
+      this.selectPoint(mousePosition);
     }
   };
 
@@ -110,42 +115,48 @@ export class Application {
   };
 
   private handleMouseMove = () => {
-    if (this.selection.pointIndex !== -1 && this.selection.pointSelected) {
-      let point = this.points[this.selection.pointIndex];
+    if (this.selection.nodeIndex !== -1 && this.selection.nodeSelected) {
+      let node = this.nodes[this.selection.nodeIndex];
       let mouse = this.stage.getPointerPosition()!;
-      point.x(mouse.x);
-      point.y(mouse.y);
+      node.x(mouse.x + this.selection.mouseOffset.x);
+      node.y(mouse.y + this.selection.mouseOffset.y);
     }
   };
 
   private highlightPoint(index: number) {
-    // unhighlight any previous point
-    if (this.selection.pointIndex !== -1) {
-      let point = this.points[this.selection.pointIndex];
-      point.fill(COLOR_NORMAL);
-      this.selection.pointIndex = -1;
-      this.selection.pointSelected = false;
+    // unhighlight any previous node
+    if (this.selection.nodeIndex !== -1) {
+      let node = this.nodes[this.selection.nodeIndex];
+      node.fill(COLOR_NORMAL);
+      this.selection.nodeIndex = -1;
+      this.selection.nodeSelected = false;
     }
 
     if (index != -1) {
-      this.selection.pointIndex = index;
-      this.selection.pointSelected = false;
+      this.selection.nodeIndex = index;
+      this.selection.nodeSelected = false;
 
-      this.points[index].fill(COLOR_HIGHLIGHT);
+      this.nodes[index].fill(COLOR_HIGHLIGHT);
     }
   }
 
-  private selectPoint() {
-    this.selection.pointSelected = true;
-    let point = this.points[this.selection.pointIndex];
-    point.fill(COLOR_SELECTED);
-    point.setZIndex(this.points.length - 1);
+  private selectPoint(mousePosition: Vector2d) {
+    this.selection.nodeSelected = true;
+
+    let node = this.nodes[this.selection.nodeIndex];
+    node.fill(COLOR_SELECTED);
+    node.setZIndex(this.nodes.length - 1);
+
+    this.selection.mouseOffset = {
+      x: node.x() - mousePosition.x,
+      y: node.y() - mousePosition.y,
+    };
   }
 
   private deselectPoint() {
-    this.selection.pointSelected = false;
-    if (this.selection.pointIndex !== -1) {
-      this.points[this.selection.pointIndex].fill(COLOR_HIGHLIGHT);
+    this.selection.nodeSelected = false;
+    if (this.selection.nodeIndex !== -1) {
+      this.nodes[this.selection.nodeIndex].fill(COLOR_HIGHLIGHT);
     }
   }
 }
