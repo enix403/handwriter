@@ -98,19 +98,19 @@ export class Application {
   };
 
   private handleMouseDown = () => {
-    if (this.selection.pointIndex === -1) this.addPoint();
-    else {
-      this.selection.pointSelected = true;
+    if (this.selection.pointIndex === -1) {
+      this.addPoint();
+    } else {
+      this.selectPoint();
     }
   };
 
   private handleMouseUp = () => {
-    this.selection.pointSelected = false;
+    this.deselectPoint();
   };
 
   private handleMouseMove = () => {
     if (this.selection.pointIndex !== -1 && this.selection.pointSelected) {
-      // console.log("Moving");
       let point = this.points[this.selection.pointIndex];
       let mouse = this.stage.getPointerPosition()!;
       point.x(mouse.x);
@@ -120,7 +120,7 @@ export class Application {
 
   private highlightPoint(index: number) {
     // unhighlight any previous point
-    if (this.selection.pointIndex != -1) {
+    if (this.selection.pointIndex !== -1) {
       let point = this.points[this.selection.pointIndex];
       point.fill(COLOR_NORMAL);
       this.selection.pointIndex = -1;
@@ -132,6 +132,20 @@ export class Application {
       this.selection.pointSelected = false;
 
       this.points[index].fill(COLOR_HIGHLIGHT);
+    }
+  }
+
+  private selectPoint() {
+    this.selection.pointSelected = true;
+    let point = this.points[this.selection.pointIndex];
+    point.fill(COLOR_SELECTED);
+    point.setZIndex(this.points.length - 1);
+  }
+
+  private deselectPoint() {
+    this.selection.pointSelected = false;
+    if (this.selection.pointIndex !== -1) {
+      this.points[this.selection.pointIndex].fill(COLOR_HIGHLIGHT);
     }
   }
 }
