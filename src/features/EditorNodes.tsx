@@ -41,13 +41,13 @@ export class RectNode extends EditorNode {
     });
   }
 
-  setup(container: Konva.Group) {
-    this.initialSize(50, 50);
+  public override setup(container: Konva.Group) {
+    this.initialSize(100, 100);
 
     container.add(this.rect);
   }
 
-  onResize() {
+  public override onResize() {
     this.rect.width(this.getWidth());
     this.rect.height(this.getHeight());
   }
