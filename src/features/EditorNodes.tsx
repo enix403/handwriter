@@ -5,7 +5,7 @@ export abstract class EditorNode {
   group: Konva.Group;
 
   constructor() {
-    this.group = new Konva.Group({ });
+    this.group = new Konva.Group({});
   }
 
   public initialSize(width: number, height: number) {
@@ -24,6 +24,12 @@ export abstract class EditorNode {
 
   public getWidth = () => this.group.width();
   public getHeight = () => this.group.height();
+  public getX = () => this.group.x();
+  public getY = () => this.group.y();
+  public getPosition = (): Vector2d => ({
+    x: this.group.x(),
+    y: this.group.y()
+  });
 
   public setup(container: Konva.Group) {}
   public onResize() {}

@@ -2,6 +2,8 @@ import Konva from "konva";
 import { KonvaEventObject } from "konva/lib/Node";
 import { Vector2d } from "konva/lib/types";
 
+import { Controls } from "./Controls";
+
 import { EditorNode, RectNode } from "./EditorNodes";
 
 const COLOR_NORMAL = "#F4F5F7";
@@ -21,6 +23,9 @@ export class Application {
   private nodesLayer: Konva.Layer;
   private nodes: Array<EditorNode> = [];
 
+  private controlsLayer: Konva.Layer;
+  private controls: Controls;
+
   private selection: SelectionInfo = {
     nodeIndex: -1,
     nodeSelected: false,
@@ -38,6 +43,10 @@ export class Application {
 
     this.nodesLayer = new Konva.Layer();
     this.stage.add(this.nodesLayer);
+
+    this.controlsLayer = new Konva.Layer();
+    this.controls = new Controls(this.controlsLayer);
+    this.stage.add(this.controlsLayer);
 
     this.stage.on("mousedown", this.handleMouseDown);
     this.stage.on("mouseup", this.handleMouseUp);
@@ -113,23 +122,29 @@ export class Application {
       let mouse = this.stage.getPointerPosition()!;
       node.group.x(mouse.x + this.selection.mouseOffset.x);
       node.group.y(mouse.y + this.selection.mouseOffset.y);
+
+      this.controls.adaptNode(node);
     }
   };
 
   private highlightPoint(index: number) {
     // unhighlight any previous node
     if (this.selection.nodeIndex !== -1) {
-      let node = this.nodes[this.selection.nodeIndex];
+
       // node.group.fill(COLOR_NORMAL);
       this.selection.nodeIndex = -1;
       this.selection.nodeSelected = false;
+      this.controls.hide();
     }
 
     if (index != -1) {
       this.selection.nodeIndex = index;
       this.selection.nodeSelected = false;
 
-      // this.nodes[index].fill(COLOR_HIGHLIGHT);
+      let node = this.nodes[this.selection.nodeIndex];
+
+      this.controls.show();
+      this.controls.adaptNode(node);
     }
   }
 
