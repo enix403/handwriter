@@ -134,7 +134,7 @@ export class Application {
       // node.group.fill(COLOR_NORMAL);
       this.selection.nodeIndex = -1;
       this.selection.nodeSelected = false;
-      this.controls.hide();
+      // this.controls.hide();
     }
 
     if (index != -1) {
@@ -143,13 +143,14 @@ export class Application {
 
       let node = this.nodes[this.selection.nodeIndex];
 
-      this.controls.show();
+      this.controls.showHover();
       this.controls.adaptNode(node);
     }
   }
 
   private selectPoint(mousePosition: Vector2d) {
     this.selection.nodeSelected = true;
+    this.controls.showFull();
 
     let node = this.nodes[this.selection.nodeIndex];
     // node.fill(COLOR_SELECTED);

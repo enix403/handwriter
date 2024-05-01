@@ -25,8 +25,14 @@ export class Controls {
     this.rect.hide();
   }
 
-  show() {
+  showHover() {
     this.rect.show();
+    this.rect.stroke('white');
+  }
+
+  showFull() {
+    this.rect.show();
+    this.rect.stroke('blue');
   }
 
   adaptNode(node: EditorNode) {
